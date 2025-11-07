@@ -53,6 +53,7 @@
 /* Lines View */
 "metro" = "Metro";
 "bus" = "Bus";
+"all" = "All";
 "route" = "Route";
 "stations" = "Stations";
 
@@ -91,3 +92,9 @@
 /* Permissions */
 "location_permission_title" = "Location Permission";
 "location_permission_message" = "This app needs access to your location to show nearby stations and plan routes.";
+
+/* Map tap */
+"map_tap_title" = "What would you like to do?";
+"set_as_origin" = "Set as Origin";
+"set_as_destination" = "Set as Destination";
+"view_nearby_stations" = "View Nearby Stations";
