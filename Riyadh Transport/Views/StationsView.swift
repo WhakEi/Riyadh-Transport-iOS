@@ -74,7 +74,7 @@ struct StationsView: View {
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(station.displayName)
                                     .font(.headline)
-                                Text(String(format: "%.4f, %.4f", station.latitude, station.longitude))
+                                Text(formatDistanceAndDuration(station: station))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -139,6 +139,38 @@ struct StationsView: View {
                 }
             }
         }
+    }
+    
+    // Format distance and walking time for display
+    private func formatDistanceAndDuration(station: Station) -> String {
+        let distance = station.distanceInMeters
+        let duration = station.durationInSeconds
+        
+        // If distance is 0 or not available, show coordinates as fallback
+        if distance <= 0 {
+            return String(format: "%.4f, %.4f", station.latitude, station.longitude)
+        }
+        
+        // Format distance
+        let distanceText: String
+        if distance < 1000 {
+            distanceText = String(format: "%.0f m", distance)
+        } else {
+            distanceText = String(format: "%.1f km", distance / 1000)
+        }
+        
+        // Format duration (walking time)
+        let durationMinutes = Int(ceil(duration / 60))
+        let durationText: String
+        if durationMinutes < 1 {
+            durationText = "< 1 min"
+        } else if durationMinutes == 1 {
+            durationText = "1 min"
+        } else {
+            durationText = "\(durationMinutes) mins"
+        }
+        
+        return "\(distanceText) away, \(durationText) walk"
     }
 }
 

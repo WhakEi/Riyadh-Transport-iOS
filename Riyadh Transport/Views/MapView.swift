@@ -92,15 +92,10 @@ struct MapView: UIViewRepresentable {
         
         // Update route overlays on the map
         func updateRoute(_ route: Route?, on mapView: MKMapView) {
-            // Only update if route has changed
-            if route?.segments.count == currentRoute?.segments.count {
-                return
-            }
+            // Remove existing overlays first
+            mapView.removeOverlays(mapView.overlays)
             
             currentRoute = route
-            
-            // Remove existing overlays
-            mapView.removeOverlays(mapView.overlays)
             
             guard let route = route else { return }
             
