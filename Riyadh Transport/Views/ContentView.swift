@@ -11,6 +11,7 @@ import MapKit
 struct ContentView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var favoritesManager: FavoritesManager
+    @EnvironmentObject var stationManager: StationManager
     @State private var selectedTab = 0
     @State private var showingSettings = false
     @State private var region = MKCoordinateRegion(
@@ -45,7 +46,7 @@ struct ContentView: View {
                 MapView(region: $region, onMapTap: { coordinate in
                     tappedCoordinate = coordinate
                     showingMapTapOptions = true
-                }, route: currentRoute)
+                }, route: currentRoute, allStations: stationManager.stations)
                     .ignoresSafeArea()
                     .onTapGesture {
                         // Dismiss keyboard when tapping map

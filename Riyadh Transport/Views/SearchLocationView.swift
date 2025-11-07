@@ -24,7 +24,7 @@ struct SearchLocationView: View {
         guard !searchText.isEmpty else { return [] }
         return stationManager.stations
             .filter { $0.displayName.localizedCaseInsensitiveContains(searchText) }
-            .prefix(5)
+            .prefix(10)  // Changed from 5 to 10
             .map { station in
                 SearchResult(
                     name: station.displayName,
@@ -155,7 +155,7 @@ struct SearchLocationView: View {
         // Cancel previous search
         searchTask?.cancel()
         
-        guard !query.isEmpty, query.count >= 3 else {
+        guard !query.isEmpty, query.count >= 2 else {  // Changed from 3 to 2
             searchResults = []
             return
         }

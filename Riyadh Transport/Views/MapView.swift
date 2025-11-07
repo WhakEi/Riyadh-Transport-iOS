@@ -13,6 +13,7 @@ struct MapView: UIViewRepresentable {
     @State private var stations: [Station] = []
     var onMapTap: ((CLLocationCoordinate2D) -> Void)?
     var route: Route?  // Optional route to display on map
+    var allStations: [Station] = []  // All stations for route matching
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -136,6 +137,17 @@ struct MapView: UIViewRepresentable {
         
         // Extract coordinates from a route segment
         private func extractCoordinates(from segment: RouteSegment) -> [CLLocationCoordinate2D]? {
+            // First try to get coordinates from from/to fields
+            if let coords = extractFromToCoordinates(from: segment) {
+                return coords
+            }
+            
+            // If from/to fields don't work, try to match station names with the stations list
+            return extractFromStationNames(from: segment)
+        }
+        
+        // Extract coordinates from from/to fields
+        private func extractFromToCoordinates(from segment: RouteSegment) -> [CLLocationCoordinate2D]? {
             guard let from = segment.from?.value as? [Any],
                   let to = segment.to?.value as? [Any],
                   from.count >= 2,
@@ -148,10 +160,56 @@ struct MapView: UIViewRepresentable {
             let toLat = (to[0] as? NSNumber)?.doubleValue ?? 0.0
             let toLon = (to[1] as? NSNumber)?.doubleValue ?? 0.0
             
-            return [
-                CLLocationCoordinate2D(latitude: fromLat, longitude: fromLon),
-                CLLocationCoordinate2D(latitude: toLat, longitude: toLon)
-            ]
+            // Only return if coordinates are valid (not 0,0)
+            if fromLat != 0.0 || fromLon != 0.0 || toLat != 0.0 || toLon != 0.0 {
+                return [
+                    CLLocationCoordinate2D(latitude: fromLat, longitude: fromLon),
+                    CLLocationCoordinate2D(latitude: toLat, longitude: toLon)
+                ]
+            }
+            
+            return nil
+        }
+        
+        // Extract coordinates by matching station names
+        private func extractFromStationNames(from segment: RouteSegment) -> [CLLocationCoordinate2D]? {
+            guard let stationNames = segment.stations, !stationNames.isEmpty else {
+                return nil
+            }
+            
+            // Get first and last station names
+            let firstStationName = stationNames.first ?? ""
+            let lastStationName = stationNames.last ?? ""
+            
+            // Strip (Metro) or (Bus) suffix from station names
+            let cleanFirstName = firstStationName
+                .replacingOccurrences(of: "\\s*\\(Bus\\)\\s*$", with: "", options: .regularExpression)
+                .replacingOccurrences(of: "\\s*\\(Metro\\)\\s*$", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+            
+            let cleanLastName = lastStationName
+                .replacingOccurrences(of: "\\s*\\(Bus\\)\\s*$", with: "", options: .regularExpression)
+                .replacingOccurrences(of: "\\s*\\(Metro\\)\\s*$", with: "", options: .regularExpression)
+                .trimmingCharacters(in: .whitespaces)
+            
+            // Try to find matching stations from all stations
+            let allStations = parent.allStations
+            
+            let firstStation = allStations.first { station in
+                station.displayName.localizedCaseInsensitiveCompare(cleanFirstName) == .orderedSame ||
+                station.rawName.localizedCaseInsensitiveCompare(cleanFirstName) == .orderedSame
+            }
+            
+            let lastStation = allStations.first { station in
+                station.displayName.localizedCaseInsensitiveCompare(cleanLastName) == .orderedSame ||
+                station.rawName.localizedCaseInsensitiveCompare(cleanLastName) == .orderedSame
+            }
+            
+            if let firstStation = firstStation, let lastStation = lastStation {
+                return [firstStation.coordinate, lastStation.coordinate]
+            }
+            
+            return nil
         }
         
         // Allow simultaneous recognition with pan/zoom/rotation, but not with taps
