@@ -9,7 +9,8 @@ import Foundation
 
 struct Line: Codable, Identifiable {
     var id: String
-    let name: String?
+    // Changed from 'let' to 'var' to allow localization to update the name.
+    var name: String?
     let type: String?
     let color: String?
     let directions: [String]?
