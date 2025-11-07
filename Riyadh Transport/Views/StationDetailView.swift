@@ -64,7 +64,7 @@ struct StationDetailView: View {
                 // Live arrivals
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
-                        Text("live_arrivals")
+                        Text(localizedString("live_arrivals"))
                             .font(.headline)
                         Spacer()
                         Button(action: loadArrivals) {
@@ -77,12 +77,12 @@ struct StationDetailView: View {
                         ProgressView()
                             .padding()
                     } else if arrivals.isEmpty {
-                        Text("no_arrivals")
+                        Text(localizedString("no_arrivals"))
                             .foregroundColor(.secondary)
                             .padding()
                     } else {
                         ForEach(arrivals) { arrival in
-                            ArrivalRow(arrival: arrival)
+                            ArrivalRow(arrival: arrival, isMetro: station.isMetro)
                         }
                     }
                 }
@@ -103,26 +103,30 @@ struct StationDetailView: View {
     private func loadArrivals() {
         isLoading = true
         
-        let loadArrivalsClosure = station.isMetro ? 
-            APIService.shared.getMetroArrivals : 
-            APIService.shared.getBusArrivals
-        
-        loadArrivalsClosure(station.rawName) { result in
-            DispatchQueue.main.async {
-                isLoading = false
-                switch result {
-                case .success(let data):
+        Task {
+            do {
+                let data: [String: Any]
+                if station.isMetro {
+                    data = try await APIService.shared.getMetroArrivals(stationName: station.rawName)
+                } else {
+                    data = try await APIService.shared.getBusArrivals(stationName: station.rawName)
+                }
+                
+                await MainActor.run {
+                    isLoading = false
                     parseArrivals(from: data)
-                case .failure(let error):
-                    print("Error loading arrivals: \(error.localizedDescription)")
+                }
+            } catch {
+                await MainActor.run {
+                    isLoading = false
+                    print("Error loading arrivals: \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
+                    self.arrivals = []
                 }
             }
         }
     }
     
     private func parseArrivals(from data: [String: Any]) {
-        // Parse arrivals from API response
-        // This is simplified - adjust based on actual API response
         var newArrivals: [Arrival] = []
         
         if let arrivalsData = data["arrivals"] as? [[String: Any]] {
@@ -136,12 +140,18 @@ struct StationDetailView: View {
             }
         }
         
-        arrivals = newArrivals
+        arrivals = newArrivals.sorted { $0.minutesUntil ?? 0 < $1.minutesUntil ?? 0 }
     }
 }
 
 struct ArrivalRow: View {
     let arrival: Arrival
+    let isMetro: Bool
+    
+    private var localizedLineName: String {
+        guard let line = arrival.line else { return "" }
+        return isMetro ? LineColorHelper.getMetroLineName(line) : line
+    }
     
     var body: some View {
         HStack {
@@ -151,7 +161,7 @@ struct ArrivalRow: View {
                 .frame(width: 8)
             
             VStack(alignment: .leading, spacing: 4) {
-                Text(arrival.line ?? "")
+                Text(localizedLineName)
                     .font(.headline)
                 Text(arrival.destination ?? "")
                     .font(.subheadline)
