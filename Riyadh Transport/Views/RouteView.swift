@@ -141,10 +141,6 @@ struct RouteView: View {
             case .viewNearbyStations:
                 break  // Handled in StationsView
             }
-            
-            // Reset the action after handling
-            self.mapAction = nil
-            self.mapTappedCoordinate = nil
         }
     }
     

@@ -107,10 +107,6 @@ struct StationsView: View {
             
             nearbyLocation = coordinate
             loadNearbyStations(at: coordinate)
-            
-            // Reset the action after handling
-            self.mapAction = nil
-            self.mapTappedCoordinate = nil
         }
     }
     

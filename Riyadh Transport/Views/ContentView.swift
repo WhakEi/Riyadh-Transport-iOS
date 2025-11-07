@@ -224,6 +224,16 @@ struct ContentView: View {
                     }
                 }
             }
+            .onChange(of: selectedMapAction) { action in
+                // Clean up the state after child views have processed the action
+                if action != nil {
+                    // Use a small delay to ensure child views have processed the action
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        selectedMapAction = nil
+                        tappedCoordinate = nil
+                    }
+                }
+            }
         }
     }
 }
