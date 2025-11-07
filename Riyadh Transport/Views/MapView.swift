@@ -12,6 +12,7 @@ struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     @State private var stations: [Station] = []
     var onMapTap: ((CLLocationCoordinate2D) -> Void)?
+    var route: Route?  // Optional route to display on map
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
@@ -39,6 +40,9 @@ struct MapView: UIViewRepresentable {
             // Each time region changes, reload nearby stations
             loadNearbyStations(on: mapView, for: region.center)
         }
+        
+        // Update route overlays when route changes
+        context.coordinator.updateRoute(route, on: mapView)
     }
 
     func makeCoordinator() -> Coordinator {
@@ -71,6 +75,7 @@ struct MapView: UIViewRepresentable {
 
     class Coordinator: NSObject, MKMapViewDelegate, UIGestureRecognizerDelegate {
         var parent: MapView
+        var currentRoute: Route?
 
         init(_ parent: MapView) {
             self.parent = parent
@@ -83,6 +88,75 @@ struct MapView: UIViewRepresentable {
             
             // Call the callback if provided
             parent.onMapTap?(coordinate)
+        }
+        
+        // Update route overlays on the map
+        func updateRoute(_ route: Route?, on mapView: MKMapView) {
+            // Only update if route has changed
+            if route?.segments.count == currentRoute?.segments.count {
+                return
+            }
+            
+            currentRoute = route
+            
+            // Remove existing overlays
+            mapView.removeOverlays(mapView.overlays)
+            
+            guard let route = route else { return }
+            
+            // Draw route segments
+            for segment in route.segments {
+                if let coordinates = extractCoordinates(from: segment) {
+                    let polyline = MKPolyline(coordinates: coordinates, count: coordinates.count)
+                    mapView.addOverlay(polyline)
+                }
+            }
+            
+            // Adjust map region to show entire route
+            if let firstSegment = route.segments.first,
+               let lastSegment = route.segments.last,
+               let firstCoords = extractCoordinates(from: firstSegment),
+               let lastCoords = extractCoordinates(from: lastSegment),
+               let startCoord = firstCoords.first,
+               let endCoord = lastCoords.last {
+                
+                let minLat = min(startCoord.latitude, endCoord.latitude)
+                let maxLat = max(startCoord.latitude, endCoord.latitude)
+                let minLon = min(startCoord.longitude, endCoord.longitude)
+                let maxLon = max(startCoord.longitude, endCoord.longitude)
+                
+                let center = CLLocationCoordinate2D(
+                    latitude: (minLat + maxLat) / 2,
+                    longitude: (minLon + maxLon) / 2
+                )
+                let span = MKCoordinateSpan(
+                    latitudeDelta: (maxLat - minLat) * 1.3,
+                    longitudeDelta: (maxLon - minLon) * 1.3
+                )
+                
+                let region = MKCoordinateRegion(center: center, span: span)
+                mapView.setRegion(region, animated: true)
+            }
+        }
+        
+        // Extract coordinates from a route segment
+        private func extractCoordinates(from segment: RouteSegment) -> [CLLocationCoordinate2D]? {
+            guard let from = segment.from?.value as? [Any],
+                  let to = segment.to?.value as? [Any],
+                  from.count >= 2,
+                  to.count >= 2 else {
+                return nil
+            }
+            
+            let fromLat = (from[0] as? NSNumber)?.doubleValue ?? 0.0
+            let fromLon = (from[1] as? NSNumber)?.doubleValue ?? 0.0
+            let toLat = (to[0] as? NSNumber)?.doubleValue ?? 0.0
+            let toLon = (to[1] as? NSNumber)?.doubleValue ?? 0.0
+            
+            return [
+                CLLocationCoordinate2D(latitude: fromLat, longitude: fromLon),
+                CLLocationCoordinate2D(latitude: toLat, longitude: toLon)
+            ]
         }
         
         // Allow simultaneous recognition with pan/zoom/rotation, but not with taps
@@ -127,6 +201,17 @@ struct MapView: UIViewRepresentable {
             parent.region = mapView.region
             // Each time region changes, reload nearby stations
             parent.loadNearbyStations(on: mapView, for: mapView.region.center)
+        }
+        
+        // Render route overlays with colors based on segment type
+        func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
+            if let polyline = overlay as? MKPolyline {
+                let renderer = MKPolylineRenderer(polyline: polyline)
+                renderer.strokeColor = .systemBlue
+                renderer.lineWidth = 4
+                return renderer
+            }
+            return MKOverlayRenderer(overlay: overlay)
         }
     }
 }

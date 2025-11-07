@@ -13,6 +13,7 @@ struct RouteView: View {
     @FocusState.Binding var isTextFieldFocused: Bool
     @Binding var mapTappedCoordinate: CLLocationCoordinate2D?
     @Binding var mapAction: MapTapAction?
+    @Binding var displayedRoute: Route?
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var stationManager: StationManager
     @State private var startLocation: String = ""
@@ -75,6 +76,7 @@ struct RouteView: View {
                 .background(Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(10)
+                .contentShape(Rectangle())
                 .padding(.horizontal)
                 .disabled(isLoading)
 
@@ -141,6 +143,10 @@ struct RouteView: View {
             case .viewNearbyStations:
                 break  // Handled in StationsView
             }
+        }
+        .onChange(of: route) { newRoute in
+            // Update the displayed route on the map whenever route changes
+            displayedRoute = newRoute
         }
     }
     
@@ -344,13 +350,15 @@ private struct RouteViewPreviewWrapper: View {
     @FocusState private var isTextFieldFocused: Bool
     @State private var mapTappedCoordinate: CLLocationCoordinate2D?
     @State private var mapAction: MapTapAction?
+    @State private var displayedRoute: Route?
 
     var body: some View {
         RouteView(
             region: $region,
             isTextFieldFocused: $isTextFieldFocused,
             mapTappedCoordinate: $mapTappedCoordinate,
-            mapAction: $mapAction
+            mapAction: $mapAction,
+            displayedRoute: $displayedRoute
         )
         .environmentObject(LocationManager())
         .environmentObject(StationManager.shared)

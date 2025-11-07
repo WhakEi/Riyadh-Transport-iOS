@@ -23,6 +23,7 @@ struct ContentView: View {
     @State private var tappedCoordinate: CLLocationCoordinate2D?
     @State private var showingMapTapOptions = false
     @State private var selectedMapAction: MapTapAction?
+    @State private var currentRoute: Route?
     
     // Bottom sheet heights
     private let minHeight: CGFloat = UIScreen.main.bounds.height * 0.5
@@ -44,7 +45,7 @@ struct ContentView: View {
                 MapView(region: $region, onMapTap: { coordinate in
                     tappedCoordinate = coordinate
                     showingMapTapOptions = true
-                })
+                }, route: currentRoute)
                     .ignoresSafeArea()
                     .onTapGesture {
                         // Dismiss keyboard when tapping map
@@ -167,7 +168,8 @@ struct ContentView: View {
                             region: $region, 
                             isTextFieldFocused: $isTextFieldFocused,
                             mapTappedCoordinate: $tappedCoordinate,
-                            mapAction: $selectedMapAction
+                            mapAction: $selectedMapAction,
+                            displayedRoute: $currentRoute
                         )
                             .tag(0)
                         
