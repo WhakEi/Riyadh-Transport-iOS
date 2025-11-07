@@ -30,11 +30,11 @@ This document tracks the implementation status of features ported from the Andro
 
 ### Line Features
 - ✅ Metro lines list
-- ⚫️ Bus lines list
-- ⚫️ Metro/Bus toggle
-- ⚫️ Line details view
+- ✅ Bus lines list
+- ✅ Metro/Bus toggle
+- ✅ Line details view
 - ✅ Color-coded lines
-- ⚫️ Station list per line
+- ✅ Station list per line
 - ⚫️ Line route summary
 - ✅ Line type indicators
 
@@ -43,19 +43,19 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Station markers
 - ✅ User location display
 - ✅ Map centering on Riyadh
-- ⚫️ Interactive map controls
+- ✅ Interactive map controls
 - ⚫️ Annotation callouts
-- ⚫️ Color-coded markers
+- ✅ Color-coded markers
 - ✅ Map region updates
 
 ### Favorites & History
 - ⚫️ Favorite stations
 - ⚫️ Favorite locations
-- ⚫️ Search history
+- ✅ Search history
 - ⚫️ Add to favorites
 - ⚫️ Remove from favorites
-- ⚫️ Clear history function
-- ⚫️ Swipe to delete
+- ✅ Clear history function
+- ✅ Swipe to delete
 - ✅ Persistent storage
 
 ### Settings & Preferences
@@ -70,7 +70,7 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Arabic language support
 - ✅ RTL support for Arabic
 - ✅ Localized strings
-- ⚫️ Localized metro line names
+- ✅ Localized metro line names
 - ✅ Language switching
 
 ### User Interface
@@ -82,7 +82,7 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Loading indicators
 - ✅ Error alerts
 - ✅ Empty state views
-- ⚫️ List views
+- ✅ List views
 - ⚫️ Detail views
 
 ### Location Services
