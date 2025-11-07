@@ -11,191 +11,144 @@ import MapKit
 struct ContentView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var favoritesManager: FavoritesManager
+    @EnvironmentObject var stationManager: StationManager
+    
+    @AppStorage("selectedLanguage") private var selectedLanguage = "en"
+    
     @State private var selectedTab = 0
     @State private var showingSettings = false
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753), // Riyadh center
+        center: CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753),
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
     )
     @State private var bottomSheetOffset: CGFloat = 0
     @State private var isDragging = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var tappedCoordinate: CLLocationCoordinate2D?
+    @State private var showingMapTapOptions = false
+    @State private var selectedMapAction: MapTapAction?
+    @State private var currentRoute: Route?
     
-    // Bottom sheet heights
     private let minHeight: CGFloat = UIScreen.main.bounds.height * 0.5
     private let maxHeight: CGFloat = UIScreen.main.bounds.height * 0.9
     
-    var currentHeight: CGFloat {
-        return minHeight - bottomSheetOffset
-    }
-    
-    // A smoother, more "Apple-like" spring animation
-    private var smoothAnimation: Animation {
-        .spring(response: 0.4, dampingFraction: 0.8)
-    }
+    var currentHeight: CGFloat { minHeight - bottomSheetOffset }
+    private var smoothAnimation: Animation { .spring(response: 0.4, dampingFraction: 0.8) }
     
     var body: some View {
         NavigationView {
             ZStack {
-                // Map background
-                MapView(region: $region)
+                MapView(region: $region, onMapTap: { coordinate in
+                    tappedCoordinate = coordinate
+                    showingMapTapOptions = true
+                }, route: currentRoute, allStations: stationManager.stations)
                     .ignoresSafeArea()
-                    .onTapGesture {
-                        // Dismiss keyboard when tapping map
-                        isTextFieldFocused = false
-                    }
+                    .onTapGesture { isTextFieldFocused = false }
                 
-                // Floating action buttons (behind sheet when expanded)
                 VStack {
                     HStack {
                         Spacer()
-                        
                         VStack(spacing: 16) {
-                            // Settings button
                             Button(action: { showingSettings = true }) {
-                                Image(systemName: "gear")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .frame(width: 56, height: 56)
-                                    .background(Color.blue)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
+                                Image(systemName: "gear").font(.title2).foregroundColor(.white)
+                                    .frame(width: 56, height: 56).background(Color.blue).clipShape(Circle()).shadow(radius: 4)
                             }
-                            
-                            // Favorites button
                             NavigationLink(destination: FavoritesView()) {
-                                Image(systemName: "star.fill")
-                                    .font(.title2)
-                                    .foregroundColor(.white)
-                                    .frame(width: 56, height: 56)
-                                    .background(Color.orange)
-                                    .clipShape(Circle())
-                                    .shadow(radius: 4)
+                                Image(systemName: "star.fill").font(.title2).foregroundColor(.white)
+                                    .frame(width: 56, height: 56).background(Color.orange).clipShape(Circle()).shadow(radius: 4)
                             }
-                        }
-                        .padding()
+                        }.padding()
                     }
-                    
                     Spacer()
                 }
                 .padding(.top, 50)
                 .opacity(currentHeight < maxHeight * 0.7 ? 1.0 : 0.0)
                 .animation(.easeInOut(duration: 0.2), value: currentHeight)
                 
-                // Bottom sheet with tabs
                 VStack(spacing: 0) {
-                    // Larger, invisible container for the pull handle gesture
                     VStack {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(Color.gray.opacity(0.4))
-                            .frame(width: 40, height: 6)
+                        RoundedRectangle(cornerRadius: 3).fill(Color.gray.opacity(0.4)).frame(width: 40, height: 6)
                     }
-                    .frame(height: 30)
-                    .frame(maxWidth: .infinity)
-                    .contentShape(Rectangle())
-                    .gesture(
-                        DragGesture()
-                            .onChanged { value in
-                                isDragging = true
-                                let translation = value.translation.height
-                                let proposedOffset = -translation
-                                
-                                // Apply resistance at boundaries for smoother feel
-                                let newHeight = minHeight - proposedOffset
-                                
-                                if newHeight < minHeight {
-                                    let excess = minHeight - newHeight
-                                    let resistance = excess * 0.3
-                                    bottomSheetOffset = -(resistance)
-                                } else if newHeight > maxHeight {
-                                    let excess = newHeight - maxHeight
-                                    let resistance = excess * 0.3
-                                    bottomSheetOffset = -(maxHeight - minHeight + resistance)
-                                } else {
-                                    bottomSheetOffset = proposedOffset
-                                }
-                            }
-                            .onEnded { value in
-                                isDragging = false
-                                let translation = value.translation.height
-                                let velocity = value.predictedEndTranslation.height - translation
-                                
-                                let currentHeight = minHeight - bottomSheetOffset
-                                let midPoint = (minHeight + maxHeight) / 2
-                                
-                                withAnimation(smoothAnimation) {
-                                    if velocity < -500 {
-                                        bottomSheetOffset = -(maxHeight - minHeight)
-                                    } else if velocity > 500 {
-                                        bottomSheetOffset = 0
-                                    } else if abs(velocity) > 100 {
-                                        if velocity < 0 {
-                                            bottomSheetOffset = -(maxHeight - minHeight)
-                                        } else {
-                                            bottomSheetOffset = 0
-                                        }
-                                    } else {
-                                        if currentHeight > midPoint {
-                                            bottomSheetOffset = -(maxHeight - minHeight)
-                                        } else {
-                                            bottomSheetOffset = 0
-                                        }
-                                    }
-                                }
-                            }
-                    )
+                    .frame(height: 30).frame(maxWidth: .infinity).contentShape(Rectangle())
+                    .gesture(dragGesture)
                     
-                    // Tab selector
                     Picker("Tab", selection: $selectedTab) {
                         Text("route_tab").tag(0)
                         Text("stations_tab").tag(1)
                         Text("lines_tab").tag(2)
                     }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.bottom, 8)
+                    .pickerStyle(.segmented).padding(.horizontal).padding(.bottom, 8)
                     
-                    // Tab content
                     TabView(selection: $selectedTab) {
-                        RouteView(region: $region, isTextFieldFocused: $isTextFieldFocused)
-                            .tag(0)
-                        
-                        StationsView(region: $region, isTextFieldFocused: $isTextFieldFocused)
-                            .tag(1)
-                        
-                        LinesView()
-                            .tag(2)
+                        RouteView(region: $region, isTextFieldFocused: $isTextFieldFocused, mapTappedCoordinate: $tappedCoordinate, mapAction: $selectedMapAction, displayedRoute: $currentRoute).tag(0)
+                        StationsView(region: $region, isTextFieldFocused: $isTextFieldFocused, mapTappedCoordinate: $tappedCoordinate, mapAction: $selectedMapAction).tag(1)
+                        LinesView().tag(2)
                     }
                     .tabViewStyle(.page(indexDisplayMode: .never))
                 }
-                .frame(height: currentHeight)
-                .frame(maxWidth: .infinity)
+                .frame(height: currentHeight).frame(maxWidth: .infinity)
                 .background(Color(UIColor.systemBackground))
                 .cornerRadius(20, corners: [.topLeft, .topRight])
                 .shadow(color: .black.opacity(0.2), radius: 10)
                 .offset(y: UIScreen.main.bounds.height - currentHeight)
                 .animation(isDragging ? nil : smoothAnimation, value: bottomSheetOffset)
             }
-            .ignoresSafeArea(.keyboard) // This prevents the view from being pushed up by the system.
+            .ignoresSafeArea(.keyboard)
             .navigationBarHidden(true)
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
+            .sheet(isPresented: $showingSettings) { SettingsView() }
+            .confirmationDialog("map_tap_title", isPresented: $showingMapTapOptions, titleVisibility: .visible) {
+                Button("set_as_origin") { selectedMapAction = .setAsOrigin; selectedTab = 0 }
+                Button("set_as_destination") { selectedMapAction = .setAsDestination; selectedTab = 0 }
+                Button("view_nearby_stations") { selectedMapAction = .viewNearbyStations; selectedTab = 1 }
+                Button("cancel", role: .cancel) { tappedCoordinate = nil }
             }
-            .onAppear {
-                locationManager.requestPermission()
-            }
+            .onAppear { locationManager.requestPermission() }
             .onChange(of: isTextFieldFocused) { isFocused in
-                if isFocused {
-                    withAnimation(smoothAnimation) {
-                        bottomSheetOffset = -(maxHeight - minHeight)
-                    }
+                if isFocused { withAnimation(smoothAnimation) { bottomSheetOffset = -(maxHeight - minHeight) } }
+            }
+            .onChange(of: selectedTab) { _ in
+                if selectedMapAction != nil {
+                    selectedMapAction = nil
+                    tappedCoordinate = nil
                 }
+            }
+            // When the language changes, clear the current route.
+            .onChange(of: selectedLanguage) { _ in
+                currentRoute = nil
             }
         }
     }
-}
     
-// Custom corner radius extension
+    private var dragGesture: some Gesture {
+        DragGesture()
+            .onChanged { value in
+                isDragging = true
+                let translation = value.translation.height
+                let proposedOffset = -translation
+                let newHeight = minHeight - proposedOffset
+                if newHeight < minHeight {
+                    bottomSheetOffset = -( (minHeight - newHeight) * 0.3 )
+                } else if newHeight > maxHeight {
+                    bottomSheetOffset = -(maxHeight - minHeight + (newHeight - maxHeight) * 0.3)
+                } else {
+                    bottomSheetOffset = proposedOffset
+                }
+            }
+            .onEnded { value in
+                isDragging = false
+                let velocity = value.predictedEndTranslation.height - value.translation.height
+                withAnimation(smoothAnimation) {
+                    if velocity < -500 { bottomSheetOffset = -(maxHeight - minHeight) }
+                    else if velocity > 500 { bottomSheetOffset = 0 }
+                    else if abs(velocity) > 100 { bottomSheetOffset = velocity < 0 ? -(maxHeight - minHeight) : 0 }
+                    else { bottomSheetOffset = (minHeight - bottomSheetOffset) > (minHeight + maxHeight) / 2 ? -(maxHeight - minHeight) : 0 }
+                }
+            }
+    }
+}
+
+enum MapTapAction { case setAsOrigin, setAsDestination, viewNearbyStations }
+    
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
@@ -203,22 +156,8 @@ extension View {
 }
 
 struct RoundedCorner: Shape {
-    var radius: CGFloat = .infinity
-    var corners: UIRectCorner = .allCorners
-    
+    var radius: CGFloat = .infinity; var corners: UIRectCorner = .allCorners
     func path(in rect: CGRect) -> Path {
-        let path = UIBezierPath(
-            roundedRect: rect,
-            byRoundingCorners: corners,
-            cornerRadii: CGSize(width: radius, height: radius)
-        )
-        return Path(path.cgPath)
+        Path(UIBezierPath(roundedRect: rect, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius)).cgPath)
     }
-}
-
-#Preview {
-    ContentView()
-        .environmentObject(LocationManager())
-        .environmentObject(FavoritesManager.shared)
-        .environmentObject(StationManager.shared)
 }

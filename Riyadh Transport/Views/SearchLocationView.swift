@@ -15,16 +15,16 @@ struct SearchLocationView: View {
     @EnvironmentObject var favoritesManager: FavoritesManager
     @EnvironmentObject var stationManager: StationManager
     
-    @State private var searchText = ""
-    @State private var searchResults: [SearchResult] = []
-    @State private var isSearching = false
-    @State private var searchTask: Task<Void, Never>?
+    @StateObject private var searchCompleter = SearchCompleter()
+    @State private var isGeocoding = false
+
+    private var query: String { searchCompleter.queryFragment }
     
     var filteredStations: [SearchResult] {
-        guard !searchText.isEmpty else { return [] }
+        guard !query.isEmpty else { return [] }
         return stationManager.stations
-            .filter { $0.displayName.localizedCaseInsensitiveContains(searchText) }
-            .prefix(5)
+            .filter { $0.displayName.localizedCaseInsensitiveContains(query) }
+            .prefix(10)
             .map { station in
                 SearchResult(
                     name: station.displayName,
@@ -43,16 +43,13 @@ struct SearchLocationView: View {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.gray)
-                    TextField("search_location", text: $searchText)
+                    TextField("search_location", text: $searchCompleter.queryFragment)
                         .textFieldStyle(.plain)
                         .autocapitalization(.none)
                         .disableAutocorrection(true)
-                        .onChange(of: searchText) { newValue in
-                            performSearch(query: newValue)
-                        }
                     
-                    if !searchText.isEmpty {
-                        Button(action: { searchText = "" }) {
+                    if !query.isEmpty {
+                        Button(action: { searchCompleter.queryFragment = "" }) {
                             Image(systemName: "xmark.circle.fill")
                                 .foregroundColor(.gray)
                         }
@@ -63,77 +60,69 @@ struct SearchLocationView: View {
                 .cornerRadius(10)
                 .padding()
                 
-                // Results list
-                if isSearching {
-                    ProgressView()
-                        .padding()
-                } else if searchText.isEmpty {
-                    // Show search history when search bar is empty
-                    if favoritesManager.searchHistory.isEmpty {
-                        VStack(spacing: 16) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 50))
-                                .foregroundColor(.gray)
-                            Text("search_hint")
-                                .foregroundColor(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        List {
-                            Section(header: Text("recents")) {
-                                ForEach(favoritesManager.searchHistory) { result in
-                                    Button(action: {
-                                        selectResult(result)
-                                    }) {
-                                        SearchResultRow(result: result)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .onDelete { indexSet in
-                                    favoritesManager.removeSearchHistory(atOffsets: indexSet)
-                                }
-                            }
-                        }
-                        .listStyle(.plain)
-                    }
-                } else {
+                // Content Area
+                ZStack {
+                    // The List is always part of the view hierarchy now.
+                    // Its content changes based on the state.
                     List {
-                        // Show stations first
-                        if !filteredStations.isEmpty {
-                            Section(header: Text("stations")) {
-                                ForEach(filteredStations) { result in
-                                    Button(action: {
-                                        selectResult(result)
-                                    }) {
-                                        SearchResultRow(result: result)
-                                    }
-                                    .buttonStyle(.plain) // This keeps the row from turning blue
-                                }
-                            }
-                        }
-                        
-                        // Show location search results
-                        if !searchResults.isEmpty {
-                            Section(header: Text("locations")) {
-                                ForEach(searchResults) { result in
-                                    SearchResultRow(result: result)
-                                        .contentShape(Rectangle())
-                                        .onTapGesture {
-                                            selectResult(result)
+                        if query.isEmpty {
+                            if !favoritesManager.searchHistory.isEmpty {
+                                Section(header: Text("recents")) {
+                                    ForEach(favoritesManager.searchHistory) { result in
+                                        Button(action: { selectResult(result) }) {
+                                            SearchResultRow(result: result)
                                         }
+                                        .buttonStyle(.plain)
+                                    }
+                                    .onDelete { indexSet in
+                                        favoritesManager.removeSearchHistory(atOffsets: indexSet)
+                                    }
                                 }
                             }
-                        }
-                        
-                        // Show empty state if no results
-                        if filteredStations.isEmpty && searchResults.isEmpty {
-                            Text("no_results")
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
+                        } else {
+                            if !filteredStations.isEmpty {
+                                Section(header: Text("stations")) {
+                                    ForEach(filteredStations) { result in
+                                        Button(action: { selectResult(result) }) {
+                                            SearchResultRow(result: result)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                            
+                            if !searchCompleter.completions.isEmpty {
+                                Section(header: Text("locations")) {
+                                    ForEach(searchCompleter.completions, id: \.self) { completion in
+                                        Button(action: { selectCompletion(completion) }) {
+                                            CompletionRow(completion: completion)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
                         }
                     }
                     .listStyle(.plain)
+                    .opacity(shouldShowPlaceholder ? 0 : 1) // Hide list if a placeholder is showing
+                    
+                    // Placeholders (Progress, Empty History, No Results) are overlaid
+                    if isGeocoding {
+                        ProgressView()
+                    } else if shouldShowPlaceholder {
+                        if query.isEmpty {
+                            VStack(spacing: 16) {
+                                Image(systemName: "magnifyingglass")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(.gray)
+                                Text("search_hint")
+                                    .foregroundColor(.secondary)
+                            }
+                        } else {
+                            Text("no_results")
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
             }
             .navigationTitle("search_location")
@@ -146,53 +135,40 @@ struct SearchLocationView: View {
                 }
             }
         }
-        .onDisappear {
-            searchTask?.cancel()
+    }
+    
+    // A helper to determine if we need to show a placeholder view.
+    private var shouldShowPlaceholder: Bool {
+        if query.isEmpty {
+            return favoritesManager.searchHistory.isEmpty
+        } else {
+            return filteredStations.isEmpty && searchCompleter.completions.isEmpty
         }
     }
     
-    private func performSearch(query: String) {
-        // Cancel previous search
-        searchTask?.cancel()
+    private func selectCompletion(_ completion: MKLocalSearchCompletion) {
+        isGeocoding = true
+        let searchRequest = MKLocalSearch.Request(completion: completion)
+        let search = MKLocalSearch(request: searchRequest)
         
-        guard !query.isEmpty, query.count >= 3 else {
-            searchResults = []
-            return
-        }
-        
-        // Debounce search
-        searchTask = Task {
-            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
-            
-            guard !Task.isCancelled else { return }
-            
-            await MainActor.run {
-                isSearching = true
-            }
-            
-            APIService.shared.searchLocation(query: query) { result in
-                Task { @MainActor in
-                    isSearching = false
-                    
-                    guard !Task.isCancelled else { return }
-                    
-                    switch result {
-                    case .success(let results):
-                        searchResults = results.map { nominatim in
-                            SearchResult(
-                                name: nominatim.displayName,
-                                latitude: nominatim.coordinate.latitude,
-                                longitude: nominatim.coordinate.longitude,
-                                type: .location
-                            )
-                        }
-                        print("Found \(searchResults.count) location results")
-                    case .failure(let error):
-                        print("Search error: \(error.localizedDescription)")
-                        searchResults = []
-                    }
+        search.start { response, error in
+            isGeocoding = false
+            guard let mapItem = response?.mapItems.first else {
+                if let error = error {
+                    print("Error geocoding completion: \(error.localizedDescription)")
                 }
+                return
             }
+            
+            let coordinate = mapItem.placemark.coordinate
+            let result = SearchResult(
+                name: mapItem.name ?? completion.title,
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                type: .location
+            )
+            
+            selectResult(result)
         }
     }
     
@@ -200,6 +176,32 @@ struct SearchLocationView: View {
         favoritesManager.addToSearchHistory(result)
         onSelect(result)
         isPresented = false
+    }
+}
+
+// A view for showing native search completion results.
+struct CompletionRow: View {
+    let completion: MKLocalSearchCompletion
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundColor(.red)
+                .frame(width: 30)
+            
+            VStack(alignment: .leading) {
+                Text(completion.title)
+                    .font(.body)
+                    .lineLimit(2)
+                if !completion.subtitle.isEmpty {
+                    Text(completion.subtitle)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+            }
+        }
+        .padding(.vertical, 4)
     }
 }
 

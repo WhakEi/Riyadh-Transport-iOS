@@ -8,245 +8,109 @@
 import Foundation
 import CoreLocation
 
-// Add this new struct to handle the nested route response
-private struct RouteResponse: Codable {
-    let routes: [Route]
+enum APIServiceError: Error, LocalizedError {
+    case invalidURL, noDataReceived, noRouteFound
+    case decodingError(Error), networkError(Error), jsonError(String)
+    
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL: return "The URL provided was invalid."
+        case .noDataReceived: return "No data was received from the server."
+        case .decodingError(let error): return "Failed to decode the response: \(error.localizedDescription)"
+        case .networkError(let error): return "A network error occurred: \(error.localizedDescription)"
+        case .noRouteFound: return "A route could not be found between these locations."
+        case .jsonError(let message): return message
+        }
+    }
 }
+
+private struct RouteResponse: Codable { let routes: [Route] }
+private struct StationsResponse: Codable { let stations: [String] }
 
 class APIService {
     static let shared = APIService()
-    
-    // Backend server URL
     private let baseURL = "https://mainserver.inirl.net:5002/"
-    private let nominatimURL = "https://nominatim.openstreetmap.org/"
-    
     private init() {}
     
-    // MARK: - Stations
-    
-    func getStations(completion: @escaping (Result<[Station], Error>) -> Void) {
-        let endpoint = baseURL + "api/stations"
-        performRequest(endpoint: endpoint, completion: completion)
+    /// A helper function to automatically prepend the language code to the endpoint path.
+    private func localizedEndpoint(for path: String) -> String {
+        let selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
+        
+        if selectedLanguage == "ar" {
+            // Ensure there's no double slash if the base URL ends with one.
+            return baseURL + "ar/" + path
+        } else {
+            return baseURL + path
+        }
     }
     
-    func getNearbyStations(latitude: Double, longitude: Double, completion: @escaping (Result<[Station], Error>) -> Void) {
-        let endpoint = baseURL + "nearbystations"
-        let parameters: [String: Any] = [
-            "lat": latitude,
-            "lng": longitude
-        ]
-        performRequest(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
+    // MARK: - Stations
+    func getStations() async throws -> [Station] {
+        try await performRequest(endpoint: localizedEndpoint(for: "api/stations"))
+    }
+    
+    func getNearbyStations(latitude: Double, longitude: Double) async throws -> [Station] {
+        let parameters: [String: Any] = ["lat": latitude, "lng": longitude]
+        return try await performRequest(endpoint: localizedEndpoint(for: "nearbystations"), method: "POST", parameters: parameters)
     }
     
     // MARK: - Routes
-    
-    func findRoute(startLat: Double, startLng: Double, endLat: Double, endLng: Double, completion: @escaping (Result<Route, Error>) -> Void) {
-        let endpoint = baseURL + "route_from_coords"
-        let parameters: [String: Any] = [
-            "start_lat": startLat,
-            "start_lng": startLng,
-            "end_lat": endLat,
-            "end_lng": endLng
-        ]
-        
-        // The API returns a wrapper object with a "routes" array.
-        // We decode this wrapper first, then extract the first route.
-        performRequest(endpoint: endpoint, method: "POST", parameters: parameters) { (result: Result<RouteResponse, Error>) in
-            switch result {
-            case .success(let response):
-                // Check if there is at least one route and pass it to the completion handler.
-                if let firstRoute = response.routes.first {
-                    completion(.success(firstRoute))
-                } else {
-                    // If the routes array is empty, it's a valid response but no route was found.
-                    // We'll create a custom error to inform the user.
-                    let noRouteError = NSError(domain: "APIService", code: 404, userInfo: [NSLocalizedDescriptionKey: "A route could not be found between these locations."])
-                    completion(.failure(noRouteError))
-                }
-            case .failure(let error):
-                // Pass the decoding or network error along.
-                completion(.failure(error))
-            }
-        }
+    func findRoute(startLat: Double, startLng: Double, endLat: Double, endLng: Double) async throws -> Route {
+        let parameters: [String: Any] = ["start_lat": startLat, "start_lng": startLng, "end_lat": endLat, "end_lng": endLng]
+        let response: RouteResponse = try await performRequest(endpoint: localizedEndpoint(for: "route_from_coords"), method: "POST", parameters: parameters)
+        if let route = response.routes.first { return route } else { throw APIServiceError.noRouteFound }
     }
     
-    // MARK: - Arrivals (dictionary JSON)
-    
-    func getMetroArrivals(stationName: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        let endpoint = baseURL + "metro_arrivals"
+    // MARK: - Arrivals
+    func getMetroArrivals(stationName: String) async throws -> [String: Any] {
         let parameters: [String: String] = ["station_name": stationName]
-        performRequestJSON(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
+        return try await performRequestJSON(endpoint: localizedEndpoint(for: "metro_arrivals"), method: "POST", parameters: parameters)
     }
-    
-    func getBusArrivals(stationName: String, completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        let endpoint = baseURL + "bus_arrivals"
+
+    func getBusArrivals(stationName: String) async throws -> [String: Any] {
         let parameters: [String: String] = ["station_name": stationName]
-        performRequestJSON(endpoint: endpoint, method: "POST", parameters: parameters, completion: completion)
+        return try await performRequestJSON(endpoint: localizedEndpoint(for: "bus_arrivals"), method: "POST", parameters: parameters)
     }
     
-    // MARK: - Lines (dictionary JSON)
-    
-    func getBusLines(completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        let endpoint = baseURL + "buslines"
-        performRequestJSON(endpoint: endpoint, completion: completion)
+    // MARK: - Lines
+    func getBusLines() async throws -> [String: Any] { try await performRequestJSON(endpoint: localizedEndpoint(for: "buslines")) }
+    func getMetroLines() async throws -> [String: Any] { try await performRequestJSON(endpoint: localizedEndpoint(for: "mtrlines")) }
+
+    // MARK: - Line Stations
+    func getMetroStations(forLine lineId: String) async throws -> [String] {
+        let parameters = ["line": lineId]
+        let response: StationsResponse = try await performRequest(endpoint: localizedEndpoint(for: "viewmtr"), method: "POST", parameters: parameters)
+        return response.stations
     }
     
-    func getMetroLines(completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        let endpoint = baseURL + "mtrlines"
-        performRequestJSON(endpoint: endpoint, completion: completion)
+    func getBusStations(forLine lineId: String) async throws -> [String: [String]] {
+        let parameters = ["line": lineId]
+        return try await performRequest(endpoint: localizedEndpoint(for: "viewbus"), method: "POST", parameters: parameters)
     }
     
-    // MARK: - Search
-    
-    func searchLocation(query: String, completion: @escaping (Result<[NominatimResult], Error>) -> Void) {
-        let endpoint = nominatimURL + "search"
-        guard var urlComponents = URLComponents(string: endpoint) else {
-            completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-            return
-        }
-        
-        urlComponents.queryItems = [
-            URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "format", value: "json"),
-            URLQueryItem(name: "limit", value: "10"),
-            URLQueryItem(name: "countrycodes", value: "sa"),
-            URLQueryItem(name: "bounded", value: "1"),
-            URLQueryItem(name: "viewbox", value: "46.5,24.9,46.9,24.5") // Riyadh bounds
-        ]
-        
-        guard let url = urlComponents.url else {
-            completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("RiyadhTransportApp/1.0", forHTTPHeaderField: "User-Agent")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
-            
-            do {
-                let results = try JSONDecoder().decode([NominatimResult].self, from: data)
-                completion(.success(results))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-    
-    // MARK: - Generic Request Handlers
-    
-    // Decodes into a concrete Decodable type (e.g., [Station], Route)
-    private func performRequest<T: Decodable>(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil, completion: @escaping (Result<T, Error>) -> Void) {
-        guard let url = URL(string: endpoint) else {
-            completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-            return
-        }
-        
+    // MARK: - Generic Handlers
+    private func performRequest<T: Decodable>(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil) async throws -> T {
+        guard let url = URL(string: endpoint) else { throw APIServiceError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let params = parameters, method == "POST" { request.httpBody = try? JSONSerialization.data(withJSONObject: params) }
         
-        if let parameters = parameters, method == "POST" {
-            do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-            } catch {
-                completion(.failure(error))
-                return
-            }
-        }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
-            
-            do {
-                let result = try JSONDecoder().decode(T.self, from: data)
-                completion(.success(result))
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
+        let (data, _) = try await URLSession.shared.data(for: request)
+        do { return try JSONDecoder().decode(T.self, from: data) }
+        catch { throw APIServiceError.decodingError(error) }
     }
     
-    // Returns raw JSON as [String: Any] using JSONSerialization
-    private func performRequestJSON(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil, completion: @escaping (Result<[String: Any], Error>) -> Void) {
-        guard let url = URL(string: endpoint) else {
-            completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-            return
-        }
-        
+    private func performRequestJSON(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil) async throws -> [String: Any] {
+        guard let url = URL(string: endpoint) else { throw APIServiceError.invalidURL }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let params = parameters, method == "POST" { request.httpBody = try? JSONSerialization.data(withJSONObject: params) }
         
-        if let parameters = parameters, method == "POST" {
-            do {
-                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
-            } catch {
-                completion(.failure(error))
-                return
-            }
-        }
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            
-            guard let data = data else {
-                completion(.failure(NSError(domain: "APIService", code: -1, userInfo: [NSLocalizedDescriptionKey: "No data received"])))
-                return
-            }
-            
-            do {
-                let jsonObject = try JSONSerialization.jsonObject(with: data, options: [])
-                if let dict = jsonObject as? [String: Any] {
-                    completion(.success(dict))
-                } else {
-                    completion(.failure(NSError(domain: "APIService", code: -2, userInfo: [NSLocalizedDescriptionKey: "Expected a JSON object"])))
-                }
-            } catch {
-                completion(.failure(error))
-            }
-        }.resume()
-    }
-}
-
-// MARK: - Nominatim Result Model
-
-struct NominatimResult: Codable {
-    let displayName: String
-    let lat: String
-    let lon: String
-    
-    enum CodingKeys: String, CodingKey {
-        case displayName = "display_name"
-        case lat
-        case lon
-    }
-    
-    var coordinate: CLLocationCoordinate2D {
-        return CLLocationCoordinate2D(
-            latitude: Double(lat) ?? 0.0,
-            longitude: Double(lon) ?? 0.0
-        )
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let json = try JSONSerialization.jsonObject(with: data, options: [])
+        guard let dict = json as? [String: Any] else { throw APIServiceError.jsonError("Expected a JSON object.") }
+        return dict
     }
 }

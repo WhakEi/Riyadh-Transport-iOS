@@ -17,16 +17,13 @@ class StationManager: ObservableObject {
         // Guard against re-fetching data that's already loaded.
         guard stations.isEmpty else { return }
 
-        APIService.shared.getStations { result in
-            // UI updates must happen on the main thread.
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let loadedStations):
-                    self.stations = loadedStations
-                    print("StationManager: Loaded \(self.stations.count) stations.")
-                case .failure(let error):
-                    print("StationManager: Error loading stations: \(error.localizedDescription)")
-                }
+        Task {
+            do {
+                let loadedStations = try await APIService.shared.getStations()
+                self.stations = loadedStations
+                print("StationManager: Loaded \(self.stations.count) stations.")
+            } catch {
+                print("StationManager: Error loading stations: \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
             }
         }
     }

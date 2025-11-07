@@ -7,6 +7,12 @@
 
 import Foundation
 
+// New struct to decode the individual coordinate objects from the API.
+struct RouteCoordinate: Codable {
+    let lat: Double
+    let lng: Double
+}
+
 struct RouteSegment: Codable, Identifiable {
     var id: String { UUID().uuidString }
     
@@ -17,6 +23,9 @@ struct RouteSegment: Codable, Identifiable {
     let distance: Double?
     let from: AnyCodable?
     let to: AnyCodable?
+    
+    // Add the new property to capture the detailed path.
+    let coordinates: [RouteCoordinate]?
     
     // Live arrival data (not serialized, runtime only)
     var waitMinutes: Int?

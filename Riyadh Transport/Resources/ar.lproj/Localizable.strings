@@ -21,25 +21,39 @@
 "find_route" = "ابحث عن مسار";
 "use_location" = "استخدم موقعي الحالي";
 "route_details" = "تفاصيل المسار";
-"total_time" = "الوقت الإجمالي";
-"walk" = "المشي";
+"total_time" = "الوقت الإجمالي: %d دقيقة";
+"walk" = "امشِ";
 "my_location" = "موقعي";
 "select_locations" = "الرجاء تحديد موقع البداية والوجهة";
+"invalid_locations" = "تعذر العثور على موقع واحد أو أكثر.";
+"Walk to your destination" = "امشِ إلى وجهتك";
+"Walk to %@" = "امشِ إلى %@";
+"Take Bus %@" = "اتجه على متن حافلة رقم %@";
+"Take the %@" = "اتجه على متن %@";
+"and Disembark at %@" = "وانزل في محطة %@";
+"Travel segment" = "مقطع الرحلة";
+"one_stop" = "محطة واحدة";
+"multiple_stops" = "%d محطات";
+"one_minute" = "دقيقة واحدة";
+"multiple_minutes" = "%d دقائق";
 
 /* Search */
 "search_location" = "البحث عن موقع";
 "search_hint" = "أدخل اسم موقع أو محطة";
 "no_results" = "لم يتم العثور على نتائج";
 "locations" = "المواقع";
+"recents" = "الأخيرة";
 
 /* Stations View */
-"search_stations" = "ابحث عن المحطات...";
+"search_station" = "ابحث عن محطة...";
 "nearby_stations" = "المحطات القريبة";
 "no_stations" = "لم يتم العثور على محطات";
+"no_stations_found" = "لم يتم العثور على محطات مطابقة";
 
 /* Lines View */
-"metro" = "مترو";
+"metro" = "قطار";
 "bus" = "حافلة";
+"all" = "جميع المسارات";
 "route" = "المسار";
 "stations" = "المحطات";
 
@@ -78,3 +92,9 @@
 /* Permissions */
 "location_permission_title" = "إذن الموقع";
 "location_permission_message" = "يحتاج هذا التطبيق إلى الوصول إلى موقعك لعرض المحطات القريبة والتخطيط للمسارات.";
+
+/* Map tap */
+"map_tap_title" = "ماذا تريد أن تفعل";
+"set_as_origin" = "تعيين كنقطة بداية";
+"set_as_destination" = "تعيين كوجهة";
+"view_nearby_stations" = "عرض المحطات القريبة";
