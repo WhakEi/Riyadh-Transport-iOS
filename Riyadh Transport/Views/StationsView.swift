@@ -12,7 +12,6 @@ struct StationsView: View {
     @State private var searchText = ""
     @State private var nearbyStations: [Station] = []
     @State private var isLoadingNearby = true
-    @State private var nearbyLocation: CLLocationCoordinate2D?
     @State private var showingError = false
     @State private var errorMessage = ""
     
@@ -105,7 +104,6 @@ struct StationsView: View {
             guard let action = action, action == .viewNearbyStations,
                   let coordinate = mapTappedCoordinate else { return }
             
-            nearbyLocation = coordinate
             loadNearbyStations(at: coordinate)
         }
     }
