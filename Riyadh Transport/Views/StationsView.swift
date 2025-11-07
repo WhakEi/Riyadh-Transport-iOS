@@ -16,12 +16,10 @@ struct StationsView: View {
     @State private var errorMessage = ""
     
     var filteredStations: [Station] {
-        let stationsToFilter = searchText.isEmpty ? nearbyStations : stationManager.stations
-        
         if searchText.isEmpty {
-            return stationsToFilter
+            return nearbyStations
         } else {
-            return stationsToFilter.filter {
+            return stationManager.stations.filter {
                 $0.displayName.localizedCaseInsensitiveContains(searchText)
             }
         }

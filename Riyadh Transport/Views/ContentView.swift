@@ -224,14 +224,11 @@ struct ContentView: View {
                     }
                 }
             }
-            .onChange(of: selectedMapAction) { action in
-                // Clean up after child views process the action
-                // We give a brief moment for the child views to read the action
-                if action != nil {
-                    // Using Task with a small delay is SwiftUI's recommended pattern
-                    // for allowing child views to process state changes before cleanup
-                    Task { @MainActor in
-                        try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
+            .onChange(of: selectedTab) { _ in
+                // Clean up map action state when user switches tabs
+                // This ensures state is reset after the action completes
+                if selectedMapAction != nil {
+                    DispatchQueue.main.async {
                         selectedMapAction = nil
                         tappedCoordinate = nil
                     }
