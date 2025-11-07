@@ -11,12 +11,17 @@ import MapKit
 struct MapView: UIViewRepresentable {
     @Binding var region: MKCoordinateRegion
     @State private var stations: [Station] = []
+    var onMapTap: ((CLLocationCoordinate2D) -> Void)?
 
     func makeUIView(context: Context) -> MKMapView {
         let mapView = MKMapView()
         mapView.delegate = context.coordinator
         mapView.showsUserLocation = true
         mapView.setRegion(region, animated: false)
+
+        // Add tap gesture recognizer
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleMapTap(_:)))
+        mapView.addGestureRecognizer(tapGesture)
 
         // Load and display only nearby stations at start
         loadNearbyStations(on: mapView, for: region.center)
@@ -67,6 +72,15 @@ struct MapView: UIViewRepresentable {
 
         init(_ parent: MapView) {
             self.parent = parent
+        }
+        
+        @objc func handleMapTap(_ gesture: UITapGestureRecognizer) {
+            guard let mapView = gesture.view as? MKMapView else { return }
+            let location = gesture.location(in: mapView)
+            let coordinate = mapView.convert(location, toCoordinateFrom: mapView)
+            
+            // Call the callback if provided
+            parent.onMapTap?(coordinate)
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

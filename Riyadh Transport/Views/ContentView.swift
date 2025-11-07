@@ -20,6 +20,9 @@ struct ContentView: View {
     @State private var bottomSheetOffset: CGFloat = 0
     @State private var isDragging = false
     @FocusState private var isTextFieldFocused: Bool
+    @State private var tappedCoordinate: CLLocationCoordinate2D?
+    @State private var showingMapTapOptions = false
+    @State private var selectedMapAction: MapTapAction?
     
     // Bottom sheet heights
     private let minHeight: CGFloat = UIScreen.main.bounds.height * 0.5
@@ -38,7 +41,10 @@ struct ContentView: View {
         NavigationView {
             ZStack {
                 // Map background
-                MapView(region: $region)
+                MapView(region: $region, onMapTap: { coordinate in
+                    tappedCoordinate = coordinate
+                    showingMapTapOptions = true
+                })
                     .ignoresSafeArea()
                     .onTapGesture {
                         // Dismiss keyboard when tapping map
@@ -157,10 +163,20 @@ struct ContentView: View {
                     
                     // Tab content
                     TabView(selection: $selectedTab) {
-                        RouteView(region: $region, isTextFieldFocused: $isTextFieldFocused)
+                        RouteView(
+                            region: $region, 
+                            isTextFieldFocused: $isTextFieldFocused,
+                            mapTappedCoordinate: $tappedCoordinate,
+                            mapAction: $selectedMapAction
+                        )
                             .tag(0)
                         
-                        StationsView(region: $region, isTextFieldFocused: $isTextFieldFocused)
+                        StationsView(
+                            region: $region, 
+                            isTextFieldFocused: $isTextFieldFocused,
+                            mapTappedCoordinate: $tappedCoordinate,
+                            mapAction: $selectedMapAction
+                        )
                             .tag(1)
                         
                         LinesView()
@@ -181,6 +197,23 @@ struct ContentView: View {
             .sheet(isPresented: $showingSettings) {
                 SettingsView()
             }
+            .confirmationDialog("What would you like to do?", isPresented: $showingMapTapOptions, titleVisibility: .visible) {
+                Button("Set as Origin") {
+                    selectedMapAction = .setAsOrigin
+                    selectedTab = 0  // Switch to Route tab
+                }
+                Button("Set as Destination") {
+                    selectedMapAction = .setAsDestination
+                    selectedTab = 0  // Switch to Route tab
+                }
+                Button("View Nearby Stations") {
+                    selectedMapAction = .viewNearbyStations
+                    selectedTab = 1  // Switch to Stations tab
+                }
+                Button("Cancel", role: .cancel) {
+                    tappedCoordinate = nil
+                }
+            }
             .onAppear {
                 locationManager.requestPermission()
             }
@@ -193,6 +226,12 @@ struct ContentView: View {
             }
         }
     }
+}
+
+enum MapTapAction {
+    case setAsOrigin
+    case setAsDestination
+    case viewNearbyStations
 }
     
 // Custom corner radius extension

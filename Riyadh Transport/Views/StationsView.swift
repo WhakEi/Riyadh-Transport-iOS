@@ -4,15 +4,23 @@ import MapKit
 struct StationsView: View {
     @Binding var region: MKCoordinateRegion
     @FocusState.Binding var isTextFieldFocused: Bool
+    @Binding var mapTappedCoordinate: CLLocationCoordinate2D?
+    @Binding var mapAction: MapTapAction?
     
     @EnvironmentObject var stationManager: StationManager
+    @EnvironmentObject var locationManager: LocationManager
     @State private var searchText = ""
+    @State private var nearbyStations: [Station] = []
+    @State private var isLoadingNearby = true
+    @State private var nearbyLocation: CLLocationCoordinate2D?
     
     var filteredStations: [Station] {
+        let stationsToFilter = searchText.isEmpty ? nearbyStations : stationManager.stations
+        
         if searchText.isEmpty {
-            return stationManager.stations
+            return stationsToFilter
         } else {
-            return stationManager.stations.filter {
+            return stationsToFilter.filter {
                 $0.displayName.localizedCaseInsensitiveContains(searchText)
             }
         }
@@ -42,9 +50,9 @@ struct StationsView: View {
             .cornerRadius(10)
             .padding()
             
-            if stationManager.stations.isEmpty {
-                 ProgressView()
-                     .padding()
+            if isLoadingNearby && searchText.isEmpty {
+                ProgressView()
+                    .padding()
             } else if filteredStations.isEmpty {
                 VStack(spacing: 16) {
                     Image(systemName: "tram.fill")
@@ -83,6 +91,53 @@ struct StationsView: View {
                 .listStyle(.plain)
             }
         }
+        .onAppear {
+            loadNearbyStations()
+        }
+        .onChange(of: mapAction) { action in
+            guard let action = action, action == .viewNearbyStations,
+                  let coordinate = mapTappedCoordinate else { return }
+            
+            nearbyLocation = coordinate
+            loadNearbyStations(at: coordinate)
+            
+            // Reset the action after handling
+            DispatchQueue.main.async {
+                mapAction = nil
+                mapTappedCoordinate = nil
+            }
+        }
+    }
+    
+    private func loadNearbyStations(at coordinate: CLLocationCoordinate2D? = nil) {
+        isLoadingNearby = true
+        
+        let targetCoordinate: CLLocationCoordinate2D
+        
+        if let coordinate = coordinate {
+            targetCoordinate = coordinate
+        } else if let userLocation = locationManager.location?.coordinate {
+            targetCoordinate = userLocation
+        } else {
+            // Fallback to Riyadh center
+            targetCoordinate = CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753)
+        }
+        
+        APIService.shared.getNearbyStations(
+            latitude: targetCoordinate.latitude,
+            longitude: targetCoordinate.longitude
+        ) { result in
+            DispatchQueue.main.async {
+                isLoadingNearby = false
+                switch result {
+                case .success(let stations):
+                    nearbyStations = stations
+                case .failure(let error):
+                    print("Error loading nearby stations: \(error.localizedDescription)")
+                    nearbyStations = []
+                }
+            }
+        }
     }
 }
 
@@ -93,11 +148,15 @@ private struct StationsViewPreviewWrapper: View {
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
     )
     @FocusState private var isTextFieldFocused: Bool
+    @State private var mapTappedCoordinate: CLLocationCoordinate2D?
+    @State private var mapAction: MapTapAction?
 
     var body: some View {
         StationsView(
             region: $region,
-            isTextFieldFocused: $isTextFieldFocused
+            isTextFieldFocused: $isTextFieldFocused,
+            mapTappedCoordinate: $mapTappedCoordinate,
+            mapAction: $mapAction
         )
         .environmentObject(LocationManager())
         .environmentObject(FavoritesManager.shared)

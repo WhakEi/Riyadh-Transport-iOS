@@ -11,6 +11,8 @@ import MapKit
 struct RouteView: View {
     @Binding var region: MKCoordinateRegion
     @FocusState.Binding var isTextFieldFocused: Bool
+    @Binding var mapTappedCoordinate: CLLocationCoordinate2D?
+    @Binding var mapAction: MapTapAction?
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var stationManager: StationManager
     @State private var startLocation: String = ""
@@ -126,6 +128,30 @@ struct RouteView: View {
                 endCoordinate = result.coordinate
             }
         }
+        .onChange(of: mapAction) { action in
+            guard let action = action, let coordinate = mapTappedCoordinate else { return }
+            
+            switch action {
+            case .setAsOrigin:
+                startCoordinate = coordinate
+                startLocation = formatCoordinate(coordinate)
+            case .setAsDestination:
+                endCoordinate = coordinate
+                endLocation = formatCoordinate(coordinate)
+            case .viewNearbyStations:
+                break  // Handled in StationsView
+            }
+            
+            // Reset the action after handling
+            DispatchQueue.main.async {
+                mapAction = nil
+                mapTappedCoordinate = nil
+            }
+        }
+    }
+    
+    private func formatCoordinate(_ coordinate: CLLocationCoordinate2D) -> String {
+        return String(format: "%.6f, %.6f", coordinate.latitude, coordinate.longitude)
     }
 
     private func useCurrentLocation() {
@@ -322,11 +348,15 @@ private struct RouteViewPreviewWrapper: View {
         span: MKCoordinateSpan(latitudeDelta: 0.5, longitudeDelta: 0.5)
     )
     @FocusState private var isTextFieldFocused: Bool
+    @State private var mapTappedCoordinate: CLLocationCoordinate2D?
+    @State private var mapAction: MapTapAction?
 
     var body: some View {
         RouteView(
             region: $region,
-            isTextFieldFocused: $isTextFieldFocused
+            isTextFieldFocused: $isTextFieldFocused,
+            mapTappedCoordinate: $mapTappedCoordinate,
+            mapAction: $mapAction
         )
         .environmentObject(LocationManager())
         .environmentObject(StationManager.shared)
