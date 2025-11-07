@@ -85,13 +85,14 @@ struct MapView: UIViewRepresentable {
             parent.onMapTap?(coordinate)
         }
         
-        // Allow gesture recognizer to work alongside pan and zoom gestures only
+        // Allow simultaneous recognition with pan/zoom/rotation, but not with taps
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-            // Allow simultaneous recognition with map pan and pinch gestures
-            // but not with other tap gestures (like annotation taps)
-            return otherGestureRecognizer is UIPanGestureRecognizer || 
-                   otherGestureRecognizer is UIPinchGestureRecognizer ||
-                   otherGestureRecognizer is UIRotationGestureRecognizer
+            // Allow with map navigation gestures, but not with other tap gestures
+            // This ensures our tap doesn't interfere with annotation taps
+            return !(otherGestureRecognizer is UITapGestureRecognizer) &&
+                   (otherGestureRecognizer is UIPanGestureRecognizer || 
+                    otherGestureRecognizer is UIPinchGestureRecognizer ||
+                    otherGestureRecognizer is UIRotationGestureRecognizer)
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {

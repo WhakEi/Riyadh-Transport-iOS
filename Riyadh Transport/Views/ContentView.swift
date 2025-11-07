@@ -225,8 +225,10 @@ struct ContentView: View {
                 }
             }
             .onChange(of: selectedTab) { _ in
-                // Clean up map action state when user switches tabs
-                // This ensures state is reset after the action completes
+                // Clean up map action state when tab changes
+                // This is safe because tab changes only happen as a result of
+                // processing a map action (in the action sheet handlers),
+                // so we know the child view has received the action by this point
                 if selectedMapAction != nil {
                     selectedMapAction = nil
                     tappedCoordinate = nil

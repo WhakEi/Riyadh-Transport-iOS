@@ -15,6 +15,9 @@ struct StationsView: View {
     @State private var showingError = false
     @State private var errorMessage = ""
     
+    // Default location (Riyadh center) for fallback
+    private let defaultRiyadhCenter = CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753)
+    
     var filteredStations: [Station] {
         if searchText.isEmpty {
             return nearbyStations
@@ -117,7 +120,7 @@ struct StationsView: View {
             targetCoordinate = userLocation
         } else {
             // Fallback to Riyadh center
-            targetCoordinate = CLLocationCoordinate2D(latitude: 24.7136, longitude: 46.6753)
+            targetCoordinate = defaultRiyadhCenter
         }
         
         APIService.shared.getNearbyStations(
