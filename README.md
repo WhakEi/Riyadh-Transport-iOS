@@ -9,13 +9,13 @@ This iOS version is a port of the Android app, designed to provide a native iOS 
 ## Features
 
 - ✅ **Route Planning**: Find routes between locations using public transport
-- ⏳ **Station Search**: Browse and search all metro and bus stations
+- ✅ **Station Search**: Browse and search all metro and bus stations
 - ⚫️ **Live Arrivals**: View real-time arrival information for metro and buses
 - ✅ **Interactive Map**: View stations and routes with Apple Maps
 - ✅ **GPS Location**: Use your current location as starting point
 - ✅ **Multilingual**: Supports English and Arabic (العربية)
 - ⚫️ **Favorites**: Save favorite stations and locations
-- ⚫️ **Search History**: Quickly access recently searched locations
+- ✅ **Search History**: Quickly access recently searched locations
 - ✅ **Dark Mode**: Automatic dark mode support
 - ✅ **Native iOS UI**: Built with SwiftUI for a native iOS experience
 
@@ -25,42 +25,6 @@ This iOS version is a port of the Android app, designed to provide a native iOS 
 - Xcode 14.0 or later
 - Swift 5.7 or later
 - Active internet connection for API calls and map tiles
-
-## Project Structure
-
-```
-iOS-App/
-└── RiyadhTransport/
-    ├── RiyadhTransportApp.swift      # App entry point
-    ├── Models/                        # Data models
-    │   ├── Station.swift
-    │   ├── Route.swift
-    │   ├── RouteSegment.swift
-    │   ├── Line.swift
-    │   ├── Arrival.swift
-    │   └── SearchResult.swift
-    ├── Services/                      # API services
-    │   └── APIService.swift
-    ├── Utilities/                     # Helper classes
-    │   ├── LocationManager.swift
-    │   ├── FavoritesManager.swift
-    │   └── LineColorHelper.swift
-    ├── Views/                         # SwiftUI views
-    │   ├── ContentView.swift          # Main view with tabs
-    │   ├── MapView.swift              # Apple Maps wrapper
-    │   ├── RouteView.swift            # Route planning
-    │   ├── StationsView.swift         # Station browsing
-    │   ├── LinesView.swift            # Line browsing
-    │   ├── StationDetailView.swift    # Station details
-    │   ├── LineDetailView.swift       # Line details
-    │   ├── FavoritesView.swift        # Favorites management
-    │   └── SettingsView.swift         # Settings
-    ├── Resources/                     # Localization
-    │   ├── Localizable.strings        # English
-    │   └── ar.lproj/
-    │       └── Localizable.strings    # Arabic
-    └── Info.plist                     # App configuration
-```
 
 ## Setup Instructions
 
@@ -203,7 +167,6 @@ The app uses color-coded metro lines:
 - [ ] Widget support for favorite stations
 - [ ] Apple Watch companion app
 - [ ] Siri shortcuts integration
-- [ ] Improved map routing visualization
 
 ## Architecture
 
@@ -240,7 +203,3 @@ Same as the parent project.
 
 For issues or questions:
 - Open an issue on the GitHub repository
-
-## Credits
-
-iOS port created based on the Android version, maintaining feature parity while providing a native iOS experience.
