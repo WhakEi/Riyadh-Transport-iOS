@@ -143,10 +143,8 @@ struct RouteView: View {
             }
             
             // Reset the action after handling
-            DispatchQueue.main.async {
-                mapAction = nil
-                mapTappedCoordinate = nil
-            }
+            self.mapAction = nil
+            self.mapTappedCoordinate = nil
         }
     }
     

@@ -13,6 +13,8 @@ struct StationsView: View {
     @State private var nearbyStations: [Station] = []
     @State private var isLoadingNearby = true
     @State private var nearbyLocation: CLLocationCoordinate2D?
+    @State private var showingError = false
+    @State private var errorMessage = ""
     
     var filteredStations: [Station] {
         let stationsToFilter = searchText.isEmpty ? nearbyStations : stationManager.stations
@@ -91,6 +93,11 @@ struct StationsView: View {
                 .listStyle(.plain)
             }
         }
+        .alert("Error", isPresented: $showingError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(errorMessage)
+        }
         .onAppear {
             loadNearbyStations()
         }
@@ -102,10 +109,8 @@ struct StationsView: View {
             loadNearbyStations(at: coordinate)
             
             // Reset the action after handling
-            DispatchQueue.main.async {
-                mapAction = nil
-                mapTappedCoordinate = nil
-            }
+            self.mapAction = nil
+            self.mapTappedCoordinate = nil
         }
     }
     
@@ -133,7 +138,8 @@ struct StationsView: View {
                 case .success(let stations):
                     nearbyStations = stations
                 case .failure(let error):
-                    print("Error loading nearby stations: \(error.localizedDescription)")
+                    errorMessage = error.localizedDescription
+                    showingError = true
                     nearbyStations = []
                 }
             }

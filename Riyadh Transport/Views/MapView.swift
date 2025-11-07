@@ -19,8 +19,10 @@ struct MapView: UIViewRepresentable {
         mapView.showsUserLocation = true
         mapView.setRegion(region, animated: false)
 
-        // Add tap gesture recognizer
+        // Add tap gesture recognizer for empty map areas
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleMapTap(_:)))
+        tapGesture.numberOfTapsRequired = 1
+        tapGesture.delegate = context.coordinator
         mapView.addGestureRecognizer(tapGesture)
 
         // Load and display only nearby stations at start
@@ -67,7 +69,7 @@ struct MapView: UIViewRepresentable {
         }
     }
 
-    class Coordinator: NSObject, MKMapViewDelegate {
+    class Coordinator: NSObject, MKMapViewDelegate, UIGestureRecognizerDelegate {
         var parent: MapView
 
         init(_ parent: MapView) {
@@ -81,6 +83,11 @@ struct MapView: UIViewRepresentable {
             
             // Call the callback if provided
             parent.onMapTap?(coordinate)
+        }
+        
+        // Allow gesture recognizer to work alongside other gestures
+        func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+            return true
         }
 
         func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
