@@ -1,0 +1,73 @@
+/* English Localizations for Riyadh Transport */
+
+/* General */
+"app_name" = "Riyadh Transport";
+"ok" = "OK";
+"cancel" = "Cancel";
+"done" = "Done";
+"error" = "Error";
+"loading" = "Loading...";
+"retry" = "Retry";
+"close" = "Close";
+
+/* Tabs */
+"route_tab" = "Route";
+"stations_tab" = "Stations";
+"lines_tab" = "Lines";
+
+/* Route View */
+"start_location" = "Start Location";
+"end_location" = "End Location";
+"find_route" = "Find Route";
+"use_location" = "Use Current Location";
+"route_details" = "Route Details";
+"total_time" = "Total Time";
+"walk" = "Walk";
+
+/* Stations View */
+"search_stations" = "Search Stations...";
+"nearby_stations" = "Nearby Stations";
+"no_stations" = "No stations found";
+
+/* Lines View */
+"metro" = "Metro";
+"bus" = "Bus";
+"route" = "Route";
+"stations" = "Stations";
+
+/* Station Detail */
+"live_arrivals" = "Live Arrivals";
+"no_arrivals" = "No arrivals at this time";
+
+/* Metro Lines */
+"blue_line" = "Blue Line";
+"red_line" = "Red Line";
+"orange_line" = "Orange Line";
+"yellow_line" = "Yellow Line";
+"green_line" = "Green Line";
+"purple_line" = "Purple Line";
+
+/* Favorites */
+"favorites" = "Favorites";
+"no_favorite_stations" = "No favorite stations";
+"no_favorite_locations" = "No favorite locations";
+"no_search_history" = "No search history";
+"clear_history" = "Clear History";
+"locations" = "Locations";
+"history" = "History";
+
+/* Settings */
+"settings" = "Settings";
+"language" = "Language";
+"english" = "English";
+"arabic" = "العربية";
+"cache" = "Cache";
+"clear_cache" = "Clear Cache";
+"clear_cache_message" = "This will clear all cached data.";
+"about" = "About";
+"version" = "Version";
+"source_code" = "Source Code";
+
+/* Permissions */
+"location_permission_title" = "Location Permission";
+"location_permission_message" = "This app needs access to your location to show nearby stations and plan routes.";

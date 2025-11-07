@@ -1,0 +1,777 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		293C084C2EBBF185003214BF /* RiyadhTransportApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08482EBBF184003214BF /* RiyadhTransportApp.swift */; };
+		293C085D2EBBF1C0003214BF /* StationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C085B2EBBF1C0003214BF /* StationsView.swift */; };
+		293C085E2EBBF1C0003214BF /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08512EBBF1C0003214BF /* LocationManager.swift */; };
+		293C085F2EBBF1C0003214BF /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08592EBBF1C0003214BF /* SettingsView.swift */; };
+		293C08602EBBF1C0003214BF /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C084D2EBBF1C0003214BF /* APIService.swift */; };
+		293C08612EBBF1C0003214BF /* MapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08572EBBF1C0003214BF /* MapView.swift */; };
+		293C08622EBBF1C0003214BF /* LineDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08552EBBF1C0003214BF /* LineDetailView.swift */; };
+		293C08632EBBF1C0003214BF /* FavoritesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C084F2EBBF1C0003214BF /* FavoritesManager.swift */; };
+		293C08642EBBF1C0003214BF /* LineColorHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08502EBBF1C0003214BF /* LineColorHelper.swift */; };
+		293C08652EBBF1C0003214BF /* StationDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C085A2EBBF1C0003214BF /* StationDetailView.swift */; };
+		293C08662EBBF1C0003214BF /* LinesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08562EBBF1C0003214BF /* LinesView.swift */; };
+		293C08672EBBF1C0003214BF /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08532EBBF1C0003214BF /* ContentView.swift */; };
+		293C08682EBBF1C0003214BF /* RouteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08582EBBF1C0003214BF /* RouteView.swift */; };
+		293C08692EBBF1C0003214BF /* FavoritesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08542EBBF1C0003214BF /* FavoritesView.swift */; };
+		293C08752EBBF1CC003214BF /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 293C08722EBBF1CC003214BF /* Localizable.strings */; };
+		293C08842EBBF269003214BF /* RouteSegment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08802EBBF269003214BF /* RouteSegment.swift */; };
+		293C08852EBBF269003214BF /* Arrival.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C087D2EBBF269003214BF /* Arrival.swift */; };
+		293C08862EBBF269003214BF /* Route.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C087F2EBBF269003214BF /* Route.swift */; };
+		293C08872EBBF269003214BF /* Line.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C087E2EBBF269003214BF /* Line.swift */; };
+		293C08882EBBF269003214BF /* SearchResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08812EBBF269003214BF /* SearchResult.swift */; };
+		293C08892EBBF269003214BF /* Station.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C08822EBBF269003214BF /* Station.swift */; };
+		293C088B2EBD2CBB003214BF /* SearchLocationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 293C088A2EBD2CB1003214BF /* SearchLocationView.swift */; };
+		295127512EBE069700127C25 /* StationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 295127502EBE069700127C25 /* StationManager.swift */; };
+		2951275B2EBE1A1700127C25 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 295127592EBE1A1700127C25 /* Localizable.stringsdict */; };
+		295127612EBE1B1600127C25 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 2951275F2EBE1B1600127C25 /* Localizable.stringsdict */; };
+		295127652EBE1CB800127C25 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 295127642EBE1CB800127C25 /* Localizable.strings */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		293C081C2EBBEAB0003214BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 293C08042EBBEAAE003214BF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 293C080B2EBBEAAE003214BF;
+			remoteInfo = "Riyadh Transport";
+		};
+		293C08262EBBEAB0003214BF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 293C08042EBBEAAE003214BF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 293C080B2EBBEAAE003214BF;
+			remoteInfo = "Riyadh Transport";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		293C080C2EBBEAAE003214BF /* Riyadh Transport.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Riyadh Transport.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		293C081B2EBBEAB0003214BF /* Riyadh TransportTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Riyadh TransportTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		293C08252EBBEAB0003214BF /* Riyadh TransportUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Riyadh TransportUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		293C08462EBBF184003214BF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		293C08472EBBF184003214BF /* Riyadh Transport.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = "Riyadh Transport.xcodeproj"; sourceTree = "<group>"; };
+		293C08482EBBF184003214BF /* RiyadhTransportApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RiyadhTransportApp.swift; sourceTree = "<group>"; };
+		293C084D2EBBF1C0003214BF /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		293C084F2EBBF1C0003214BF /* FavoritesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesManager.swift; sourceTree = "<group>"; };
+		293C08502EBBF1C0003214BF /* LineColorHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineColorHelper.swift; sourceTree = "<group>"; };
+		293C08512EBBF1C0003214BF /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
+		293C08532EBBF1C0003214BF /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		293C08542EBBF1C0003214BF /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
+		293C08552EBBF1C0003214BF /* LineDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineDetailView.swift; sourceTree = "<group>"; };
+		293C08562EBBF1C0003214BF /* LinesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinesView.swift; sourceTree = "<group>"; };
+		293C08572EBBF1C0003214BF /* MapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapView.swift; sourceTree = "<group>"; };
+		293C08582EBBF1C0003214BF /* RouteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteView.swift; sourceTree = "<group>"; };
+		293C08592EBBF1C0003214BF /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		293C085A2EBBF1C0003214BF /* StationDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationDetailView.swift; sourceTree = "<group>"; };
+		293C085B2EBBF1C0003214BF /* StationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationsView.swift; sourceTree = "<group>"; };
+		293C08712EBBF1CC003214BF /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ar; path = ar.lproj/Localizable.strings; sourceTree = "<group>"; };
+		293C087D2EBBF269003214BF /* Arrival.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Arrival.swift; sourceTree = "<group>"; };
+		293C087E2EBBF269003214BF /* Line.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Line.swift; sourceTree = "<group>"; };
+		293C087F2EBBF269003214BF /* Route.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Route.swift; sourceTree = "<group>"; };
+		293C08802EBBF269003214BF /* RouteSegment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteSegment.swift; sourceTree = "<group>"; };
+		293C08812EBBF269003214BF /* SearchResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResult.swift; sourceTree = "<group>"; };
+		293C08822EBBF269003214BF /* Station.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Station.swift; sourceTree = "<group>"; };
+		293C088A2EBD2CB1003214BF /* SearchLocationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchLocationView.swift; sourceTree = "<group>"; };
+		295127502EBE069700127C25 /* StationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationManager.swift; sourceTree = "<group>"; };
+		295127562EBE142100127C25 /* gpxgenerator_path.gpx */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = gpxgenerator_path.gpx; path = ../../../Downloads/gpxgenerator_path.gpx; sourceTree = "<group>"; };
+		2951275A2EBE1A1700127C25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
+		295127602EBE1B1600127C25 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ar; path = Localizable.stringsdict; sourceTree = "<group>"; };
+		295127632EBE1CB800127C25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		293C08092EBBEAAE003214BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08182EBBEAB0003214BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08222EBBEAB0003214BF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		293C08032EBBEAAE003214BF = {
+			isa = PBXGroup;
+			children = (
+				295127562EBE142100127C25 /* gpxgenerator_path.gpx */,
+				293C08832EBBF269003214BF /* Models */,
+				293C08742EBBF1CC003214BF /* Resources */,
+				293C08462EBBF184003214BF /* Info.plist */,
+				293C08472EBBF184003214BF /* Riyadh Transport.xcodeproj */,
+				293C08482EBBF184003214BF /* RiyadhTransportApp.swift */,
+				293C084E2EBBF1C0003214BF /* Services */,
+				293C08522EBBF1C0003214BF /* Utilities */,
+				293C085C2EBBF1C0003214BF /* Views */,
+				293C080D2EBBEAAE003214BF /* Products */,
+				295127592EBE1A1700127C25 /* Localizable.stringsdict */,
+				2951275E2EBE1B0000127C25 /* ar.lproj */,
+			);
+			sourceTree = "<group>";
+		};
+		293C080D2EBBEAAE003214BF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				293C080C2EBBEAAE003214BF /* Riyadh Transport.app */,
+				293C081B2EBBEAB0003214BF /* Riyadh TransportTests.xctest */,
+				293C08252EBBEAB0003214BF /* Riyadh TransportUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		293C08492EBBF184003214BF /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		293C084E2EBBF1C0003214BF /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				293C084D2EBBF1C0003214BF /* APIService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		293C08522EBBF1C0003214BF /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				293C084F2EBBF1C0003214BF /* FavoritesManager.swift */,
+				293C08502EBBF1C0003214BF /* LineColorHelper.swift */,
+				293C08512EBBF1C0003214BF /* LocationManager.swift */,
+			);
+			path = Utilities;
+			sourceTree = "<group>";
+		};
+		293C085C2EBBF1C0003214BF /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				293C088A2EBD2CB1003214BF /* SearchLocationView.swift */,
+				293C08532EBBF1C0003214BF /* ContentView.swift */,
+				293C08542EBBF1C0003214BF /* FavoritesView.swift */,
+				293C08552EBBF1C0003214BF /* LineDetailView.swift */,
+				293C08562EBBF1C0003214BF /* LinesView.swift */,
+				293C08572EBBF1C0003214BF /* MapView.swift */,
+				293C08582EBBF1C0003214BF /* RouteView.swift */,
+				293C08592EBBF1C0003214BF /* SettingsView.swift */,
+				293C085A2EBBF1C0003214BF /* StationDetailView.swift */,
+				293C085B2EBBF1C0003214BF /* StationsView.swift */,
+				295127502EBE069700127C25 /* StationManager.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		293C08742EBBF1CC003214BF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				293C08722EBBF1CC003214BF /* Localizable.strings */,
+				295127642EBE1CB800127C25 /* Localizable.strings */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		293C08832EBBF269003214BF /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				293C087D2EBBF269003214BF /* Arrival.swift */,
+				293C087E2EBBF269003214BF /* Line.swift */,
+				293C087F2EBBF269003214BF /* Route.swift */,
+				293C08802EBBF269003214BF /* RouteSegment.swift */,
+				293C08812EBBF269003214BF /* SearchResult.swift */,
+				293C08822EBBF269003214BF /* Station.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		2951275E2EBE1B0000127C25 /* ar.lproj */ = {
+			isa = PBXGroup;
+			children = (
+				2951275F2EBE1B1600127C25 /* Localizable.stringsdict */,
+			);
+			path = ar.lproj;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		293C080B2EBBEAAE003214BF /* Riyadh Transport */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 293C082F2EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh Transport" */;
+			buildPhases = (
+				293C08082EBBEAAE003214BF /* Sources */,
+				293C08092EBBEAAE003214BF /* Frameworks */,
+				293C080A2EBBEAAE003214BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Riyadh Transport";
+			packageProductDependencies = (
+			);
+			productName = "Riyadh Transport";
+			productReference = 293C080C2EBBEAAE003214BF /* Riyadh Transport.app */;
+			productType = "com.apple.product-type.application";
+		};
+		293C081A2EBBEAB0003214BF /* Riyadh TransportTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 293C08322EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh TransportTests" */;
+			buildPhases = (
+				293C08172EBBEAB0003214BF /* Sources */,
+				293C08182EBBEAB0003214BF /* Frameworks */,
+				293C08192EBBEAB0003214BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				293C081D2EBBEAB0003214BF /* PBXTargetDependency */,
+			);
+			name = "Riyadh TransportTests";
+			packageProductDependencies = (
+			);
+			productName = "Riyadh TransportTests";
+			productReference = 293C081B2EBBEAB0003214BF /* Riyadh TransportTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		293C08242EBBEAB0003214BF /* Riyadh TransportUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 293C08352EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh TransportUITests" */;
+			buildPhases = (
+				293C08212EBBEAB0003214BF /* Sources */,
+				293C08222EBBEAB0003214BF /* Frameworks */,
+				293C08232EBBEAB0003214BF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				293C08272EBBEAB0003214BF /* PBXTargetDependency */,
+			);
+			name = "Riyadh TransportUITests";
+			packageProductDependencies = (
+			);
+			productName = "Riyadh TransportUITests";
+			productReference = 293C08252EBBEAB0003214BF /* Riyadh TransportUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		293C08042EBBEAAE003214BF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2610;
+				LastUpgradeCheck = 2610;
+				TargetAttributes = {
+					293C080B2EBBEAAE003214BF = {
+						CreatedOnToolsVersion = 26.1;
+					};
+					293C081A2EBBEAB0003214BF = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = 293C080B2EBBEAAE003214BF;
+					};
+					293C08242EBBEAB0003214BF = {
+						CreatedOnToolsVersion = 26.1;
+						TestTargetID = 293C080B2EBBEAAE003214BF;
+					};
+				};
+			};
+			buildConfigurationList = 293C08072EBBEAAE003214BF /* Build configuration list for PBXProject "Riyadh Transport" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				ar,
+			);
+			mainGroup = 293C08032EBBEAAE003214BF;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 293C080D2EBBEAAE003214BF /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 293C08492EBBF184003214BF /* Products */;
+					ProjectRef = 293C08472EBBF184003214BF /* Riyadh Transport.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				293C080B2EBBEAAE003214BF /* Riyadh Transport */,
+				293C081A2EBBEAB0003214BF /* Riyadh TransportTests */,
+				293C08242EBBEAB0003214BF /* Riyadh TransportUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		293C080A2EBBEAAE003214BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				293C08752EBBF1CC003214BF /* Localizable.strings in Resources */,
+				295127612EBE1B1600127C25 /* Localizable.stringsdict in Resources */,
+				295127652EBE1CB800127C25 /* Localizable.strings in Resources */,
+				2951275B2EBE1A1700127C25 /* Localizable.stringsdict in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08192EBBEAB0003214BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08232EBBEAB0003214BF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		293C08082EBBEAAE003214BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				293C085D2EBBF1C0003214BF /* StationsView.swift in Sources */,
+				293C085E2EBBF1C0003214BF /* LocationManager.swift in Sources */,
+				293C085F2EBBF1C0003214BF /* SettingsView.swift in Sources */,
+				293C08602EBBF1C0003214BF /* APIService.swift in Sources */,
+				293C08612EBBF1C0003214BF /* MapView.swift in Sources */,
+				293C08622EBBF1C0003214BF /* LineDetailView.swift in Sources */,
+				293C08842EBBF269003214BF /* RouteSegment.swift in Sources */,
+				293C08852EBBF269003214BF /* Arrival.swift in Sources */,
+				293C08862EBBF269003214BF /* Route.swift in Sources */,
+				293C08872EBBF269003214BF /* Line.swift in Sources */,
+				293C088B2EBD2CBB003214BF /* SearchLocationView.swift in Sources */,
+				293C08882EBBF269003214BF /* SearchResult.swift in Sources */,
+				293C08892EBBF269003214BF /* Station.swift in Sources */,
+				293C08632EBBF1C0003214BF /* FavoritesManager.swift in Sources */,
+				293C08642EBBF1C0003214BF /* LineColorHelper.swift in Sources */,
+				293C08652EBBF1C0003214BF /* StationDetailView.swift in Sources */,
+				293C08662EBBF1C0003214BF /* LinesView.swift in Sources */,
+				293C08672EBBF1C0003214BF /* ContentView.swift in Sources */,
+				293C08682EBBF1C0003214BF /* RouteView.swift in Sources */,
+				293C08692EBBF1C0003214BF /* FavoritesView.swift in Sources */,
+				293C084C2EBBF185003214BF /* RiyadhTransportApp.swift in Sources */,
+				295127512EBE069700127C25 /* StationManager.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08172EBBEAB0003214BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		293C08212EBBEAB0003214BF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		293C081D2EBBEAB0003214BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 293C080B2EBBEAAE003214BF /* Riyadh Transport */;
+			targetProxy = 293C081C2EBBEAB0003214BF /* PBXContainerItemProxy */;
+		};
+		293C08272EBBEAB0003214BF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 293C080B2EBBEAAE003214BF /* Riyadh Transport */;
+			targetProxy = 293C08262EBBEAB0003214BF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		293C08722EBBF1CC003214BF /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				293C08712EBBF1CC003214BF /* ar */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		295127592EBE1A1700127C25 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				2951275A2EBE1A1700127C25 /* en */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
+		2951275F2EBE1B1600127C25 /* Localizable.stringsdict */ = {
+			isa = PBXVariantGroup;
+			children = (
+				295127602EBE1B1600127C25 /* ar */,
+			);
+			name = Localizable.stringsdict;
+			sourceTree = "<group>";
+		};
+		295127642EBE1CB800127C25 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				295127632EBE1CB800127C25 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		293C082D2EBBEAB0003214BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		293C082E2EBBEAB0003214BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		293C08302EBBEAB0003214BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Riyadh Transport";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.7;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-Transport";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		293C08312EBBEAB0003214BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "$(SRCROOT)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "Riyadh Transport";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.navigation";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 0.7;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-Transport";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		293C08332EBBEAB0003214BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-TransportTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Riyadh Transport.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Riyadh Transport";
+			};
+			name = Debug;
+		};
+		293C08342EBBEAB0003214BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-TransportTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Riyadh Transport.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Riyadh Transport";
+			};
+			name = Release;
+		};
+		293C08362EBBEAB0003214BF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-TransportUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Riyadh Transport";
+			};
+			name = Debug;
+		};
+		293C08372EBBEAB0003214BF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = C5CN6PC8ML;
+				GENERATE_INFOPLIST_FILE = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.RTG.Riyadh-TransportUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Riyadh Transport";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		293C08072EBBEAAE003214BF /* Build configuration list for PBXProject "Riyadh Transport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				293C082D2EBBEAB0003214BF /* Debug */,
+				293C082E2EBBEAB0003214BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		293C082F2EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh Transport" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				293C08302EBBEAB0003214BF /* Debug */,
+				293C08312EBBEAB0003214BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		293C08322EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh TransportTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				293C08332EBBEAB0003214BF /* Debug */,
+				293C08342EBBEAB0003214BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		293C08352EBBEAB0003214BF /* Build configuration list for PBXNativeTarget "Riyadh TransportUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				293C08362EBBEAB0003214BF /* Debug */,
+				293C08372EBBEAB0003214BF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 293C08042EBBEAAE003214BF /* Project object */;
+}

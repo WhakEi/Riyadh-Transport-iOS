@@ -1,0 +1,80 @@
+/* Arabic Localizations for Riyadh Transport */
+
+/* General */
+"app_name" = "نقل الرياض";
+"ok" = "حسناً";
+"cancel" = "إلغاء";
+"done" = "تم";
+"error" = "خطأ";
+"loading" = "جاري التحميل...";
+"retry" = "إعادة المحاولة";
+"close" = "إغلاق";
+
+/* Tabs */
+"route_tab" = "المسار";
+"stations_tab" = "المحطات";
+"lines_tab" = "الخطوط";
+
+/* Route View */
+"start_location" = "موقع البداية";
+"end_location" = "موقع الوجهة";
+"find_route" = "ابحث عن مسار";
+"use_location" = "استخدم موقعي الحالي";
+"route_details" = "تفاصيل المسار";
+"total_time" = "الوقت الإجمالي";
+"walk" = "المشي";
+"my_location" = "موقعي";
+"select_locations" = "الرجاء تحديد موقع البداية والوجهة";
+
+/* Search */
+"search_location" = "البحث عن موقع";
+"search_hint" = "أدخل اسم موقع أو محطة";
+"no_results" = "لم يتم العثور على نتائج";
+"locations" = "المواقع";
+
+/* Stations View */
+"search_stations" = "ابحث عن المحطات...";
+"nearby_stations" = "المحطات القريبة";
+"no_stations" = "لم يتم العثور على محطات";
+
+/* Lines View */
+"metro" = "مترو";
+"bus" = "حافلة";
+"route" = "المسار";
+"stations" = "المحطات";
+
+/* Station Detail */
+"live_arrivals" = "الوصول المباشر";
+"no_arrivals" = "لا توجد أوقات وصول في الوقت الحالي";
+
+/* Metro Lines */
+"blue_line" = "المسار الأزرق";
+"red_line" = "المسار الأحمر";
+"orange_line" = "المسار البرتقالي";
+"yellow_line" = "المسار الأصفر";
+"green_line" = "المسار الأخضر";
+"purple_line" = "المسار البنفسجي";
+
+/* Favorites */
+"favorites" = "المفضلة";
+"no_favorite_stations" = "لا توجد محطات مفضلة";
+"no_favorite_locations" = "لا توجد مواقع مفضلة";
+"no_search_history" = "لا يوجد سجل بحث";
+"clear_history" = "مسح السجل";
+"history" = "السجل";
+
+/* Settings */
+"settings" = "الإعدادات";
+"language" = "اللغة";
+"english" = "English";
+"arabic" = "العربية";
+"cache" = "ذاكرة التخزين المؤقت";
+"clear_cache" = "مسح ذاكرة التخزين المؤقت";
+"clear_cache_message" = "سيؤدي هذا إلى مسح جميع البيانات المخزنة مؤقتاً.";
+"about" = "حول";
+"version" = "الإصدار";
+"source_code" = "الكود المصدري";
+
+/* Permissions */
+"location_permission_title" = "إذن الموقع";
+"location_permission_message" = "يحتاج هذا التطبيق إلى الوصول إلى موقعك لعرض المحطات القريبة والتخطيط للمسارات.";
