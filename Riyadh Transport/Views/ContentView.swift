@@ -228,10 +228,8 @@ struct ContentView: View {
                 // Clean up map action state when user switches tabs
                 // This ensures state is reset after the action completes
                 if selectedMapAction != nil {
-                    DispatchQueue.main.async {
-                        selectedMapAction = nil
-                        tappedCoordinate = nil
-                    }
+                    selectedMapAction = nil
+                    tappedCoordinate = nil
                 }
             }
         }
