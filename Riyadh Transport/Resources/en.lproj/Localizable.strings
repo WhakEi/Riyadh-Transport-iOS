@@ -26,16 +26,16 @@
 "my_location" = "My Location";
 "select_locations" = "Please select start and end locations";
 "invalid_locations" = "Could not find one or more locations.";
-"Walk to your destination" = "Walk to your destination";
-"Walk to %@" = "Walk to %@";
-"Take Bus %@" = "Take Bus %@";
-"Take the %@" = "Take the %@";
-"and Disembark at %@" = "and Disembark at %@";
-"Travel segment" = "Travel segment";
-"one_stop" = "1 stop";
-"multiple_stops" = "%d stops";
+"route_walk_to_destination" = "Walk to your destination";
+"route_walk_to_station" = "Walk to %@";
+"route_walk" = "Walk";
+"route_take_bus" = "Take Bus %@";
+"route_take_metro" = "Take the %@";
+"route_disembark_at" = "and Disembark at %@";
+"route_travel_segment" = "Travel segment";
+"stops_count" = "%d stops";
+"minutes_count" = "%d mins";
 "one_minute" = "1 min";
-"multiple_minutes" = "%d mins";
 
 /* Search */
 "search_location" = "Search Location";
@@ -49,17 +49,23 @@
 "nearby_stations" = "Nearby Stations";
 "no_stations" = "No stations found";
 "no_stations_found" = "No matching stations found";
+"no_gps_found" = "Try tapping somewhere on the map to look for nearby stations";
+"distance_in_meters" = "%.0f m";
+"distance_in_kilometers" = "%.1f km";
+"less_than_one_minute" = "< 1 min";
+"station_distance_and_duration" = "%1$@ away, %2$@ walk";
+
+
 
 /* Lines View */
+"bus_line_title" = "Bus %@";
+"ring_route_format" = "%@ Ring";
 "metro" = "Metro";
 "bus" = "Bus";
 "all" = "All";
 "route" = "Route";
 "stations" = "Stations";
-
-/* Station Detail */
-"live_arrivals" = "Live Arrivals";
-"no_arrivals" = "No arrivals at this time";
+"no_stations_available" = "No stations available";
 
 /* Metro Lines */
 "blue_line" = "Blue Line";
@@ -71,9 +77,9 @@
 
 /* Favorites */
 "favorites" = "Favorites";
-"no_favorite_stations" = "No favorite stations";
-"no_favorite_locations" = "No favorite locations";
-"no_search_history" = "No search history";
+"no_favorite_stations" = "You haven't favorited any stations yet";
+"no_favorite_locations" = "You haven't favorited any locations yet";
+"no_search_history" = "Try searching something up then come back here";
 "clear_history" = "Clear History";
 "history" = "History";
 
@@ -98,3 +104,9 @@
 "set_as_origin" = "Set as Origin";
 "set_as_destination" = "Set as Destination";
 "view_nearby_stations" = "View Nearby Stations";
+
+/* Station Detail */
+"live_arrivals" = "Live Arrivals";
+"no_arrivals" = "No arrivals at this time";
+"lines_in_station" = "Lines in this station";
+"no_lines_found" = "No lines found for this station.";
