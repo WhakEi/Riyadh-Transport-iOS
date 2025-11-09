@@ -38,7 +38,11 @@
 "stops_count" = "%d محطات";
 "minutes_count" = "%d دقائق";
 "one_minute" = "دقيقة واحدة";
-
+"one_stop" = "محطة واحدة";
+"route_towards" = "استقل %1$@ باتجاه %2$@ وانزل في %3$@";
+"arriving_now" = "يصل الآن";
+"minutes_short" = "%d دقائق";
+"checking_arrivals" = "جاري التحقق...";
 
 /* Search */
 "search_location" = "البحث عن موقع";
