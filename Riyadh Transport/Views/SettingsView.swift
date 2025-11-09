@@ -43,7 +43,7 @@ struct SettingsView: View {
                     HStack {
                         Text("version")
                         Spacer()
-                        Text("0.2.4")
+                        Text("0.6.0")
                             .foregroundColor(.secondary)
                     }
                     Link(destination: URL(string: "https://github.com/WhakEi/Riyadh-Transport-iOS")!) {
@@ -80,7 +80,10 @@ struct SettingsView: View {
     /// Clears all app caches.
     private func clearAllCaches() {
         URLCache.shared.removeAllCachedResponses()
-        clearLinesCache()
+        CacheManager.shared.clearAllLanguageCaches(forBaseKey: CacheManager.metroLinesCacheKey)
+        CacheManager.shared.clearAllLanguageCaches(forBaseKey: CacheManager.busLinesCacheKey)
+        // Also clear the new station data.
+        CacheManager.shared.clearAllStationData()
     }
 }
 

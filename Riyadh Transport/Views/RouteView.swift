@@ -15,17 +15,18 @@ struct RouteView: View {
     @Binding var mapAction: MapTapAction?
     @Binding var displayedRoute: Route?
     
+    @Binding var startLocation: String
+    @Binding var endLocation: String
+    @Binding var startCoordinate: CLLocationCoordinate2D?
+    @Binding var endCoordinate: CLLocationCoordinate2D?
+    
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var stationManager: StationManager
     
-    @State private var startLocation: String = ""
-    @State private var endLocation: String = ""
     @State private var route: Route?
     @State private var isLoading = false
     @State private var showingError = false
     @State private var errorMessage = ""
-    @State private var startCoordinate: CLLocationCoordinate2D?
-    @State private var endCoordinate: CLLocationCoordinate2D?
     
     @State private var showingStartSearch = false
     @State private var showingEndSearch = false
@@ -48,6 +49,14 @@ struct RouteView: View {
                     imageColor: .red
                 )
                 .onTapGesture { showingEndSearch = true }
+
+                HStack {
+                    Button(action: useCurrentLocation) {
+                        Label(localizedString("use_location"), systemImage: "location.fill")
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal)
 
                 Button(action: findRoute) {
                     if isLoading {
@@ -111,32 +120,40 @@ struct RouteView: View {
                 endCoordinate = result.coordinate
             }
         }
-        .onChange(of: mapAction) { action in
-            guard let action = action, let coordinate = mapTappedCoordinate else { return }
-            
-            switch action {
-            case .setAsOrigin:
-                startCoordinate = coordinate
-                startLocation = formatCoordinate(coordinate)
-            case .setAsDestination:
-                endCoordinate = coordinate
-                endLocation = formatCoordinate(coordinate)
-            case .viewNearbyStations:
-                break
-            }
+        .onAppear {
+            handleMapAction()
         }
+    }
+    
+    private func handleMapAction() {
+        guard let action = mapAction, let coordinate = mapTappedCoordinate else { return }
+        
+        switch action {
+        case .setAsOrigin:
+            startCoordinate = coordinate
+            startLocation = formatCoordinate(coordinate)
+        case .setAsDestination:
+            endCoordinate = coordinate
+            endLocation = formatCoordinate(coordinate)
+        case .viewNearbyStations:
+            return
+        }
+        mapAction = nil
     }
     
     private func formatCoordinate(_ coordinate: CLLocationCoordinate2D) -> String {
         return String(format: "%.6f, %.6f", coordinate.latitude, coordinate.longitude)
     }
 
+    // This function is now updated to use the modern async/await API.
     private func useCurrentLocation() {
-        locationManager.getCurrentLocation { location in
-            guard let location = location else { return }
-            let coordinate = location.coordinate
-            startCoordinate = coordinate
-            startLocation = localizedString("my_location")
+        Task {
+            if let location = await locationManager.requestLocation() {
+                await MainActor.run {
+                    self.startCoordinate = location.coordinate
+                    self.startLocation = localizedString("my_location")
+                }
+            }
         }
     }
 
@@ -198,6 +215,8 @@ struct RouteView: View {
     }
 }
 
+// LocationFieldButton and RouteSegmentRow remain unchanged...
+
 struct LocationFieldButton: View {
     let placeholder: String
     @Binding var text: String
@@ -253,9 +272,9 @@ struct RouteSegmentRow: View {
     private var titleText: String {
         if segment.isWalking {
             if isLastSegment {
-                return localizedString("Walk to your destination")
+                return localizedString("route_walk_to_destination")
             } else if let nextStation = nextSegment?.stations?.first {
-                return String(format: localizedString("Walk to %@"), nextStation)
+                return String(format: localizedString("route_walk_to_station"), nextStation)
             } else {
                 return localizedString("walk")
             }
@@ -267,8 +286,8 @@ struct RouteSegmentRow: View {
             
             let localizedLineName = segment.isMetro ? LineColorHelper.getMetroLineName(lineIdentifier) : lineIdentifier
             
-            let takeInstructionFormat = localizedString(segment.isBus ? "Take Bus %@" : "Take the %@")
-            let disembarkInstructionFormat = localizedString("and Disembark at %@")
+            let takeInstructionFormat = localizedString(segment.isBus ? "route_take_bus" : "route_take_metro")
+            let disembarkInstructionFormat = localizedString("route_disembark_at")
             
             let takeInstruction = String(format: takeInstructionFormat, localizedLineName)
             let disembarkInstruction = String(format: disembarkInstructionFormat, lastStation)
@@ -276,7 +295,7 @@ struct RouteSegmentRow: View {
             return "\(takeInstruction) \(disembarkInstruction)"
         }
         
-        return localizedString("Travel segment")
+        return localizedString("route_travel_segment")
     }
     
     private var subtitleText: String? {
@@ -287,14 +306,14 @@ struct RouteSegmentRow: View {
             if stationCount == 1 {
                 extras.append(localizedString("one_stop"))
             } else {
-                extras.append(String(format: localizedString("multiple_stops"), stationCount))
+                extras.append(String(format: localizedString("stops_count"), stationCount))
             }
         }
         
         if durationMinutes == 1 {
             extras.append(localizedString("one_minute"))
         } else if durationMinutes > 1 {
-            extras.append(String(format: localizedString("multiple_minutes"), durationMinutes))
+            extras.append(String(format: localizedString("minutes_count"), durationMinutes))
         }
         
         return extras.isEmpty ? nil : extras.joined(separator: ", ")
@@ -309,11 +328,21 @@ private struct RouteViewPreviewWrapper: View {
     @State private var mapTappedCoordinate: CLLocationCoordinate2D?
     @State private var mapAction: MapTapAction?
     @State private var displayedRoute: Route?
+    
+    @State private var startLocation = ""
+    @State private var endLocation = ""
+    @State private var startCoordinate: CLLocationCoordinate2D?
+    @State private var endCoordinate: CLLocationCoordinate2D?
+    
     var body: some View {
         RouteView(
             region: $region, isTextFieldFocused: $isTextFieldFocused,
             mapTappedCoordinate: $mapTappedCoordinate, mapAction: $mapAction,
-            displayedRoute: $displayedRoute
+            displayedRoute: $displayedRoute,
+            startLocation: $startLocation,
+            endLocation: $endLocation,
+            startCoordinate: $startCoordinate,
+            endCoordinate: $endCoordinate
         )
         .environmentObject(LocationManager())
         .environmentObject(StationManager.shared)

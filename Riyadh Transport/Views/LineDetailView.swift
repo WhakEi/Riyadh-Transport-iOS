@@ -9,18 +9,20 @@ import SwiftUI
 
 struct LineDetailView: View {
     let line: Line
-    @State private var isLoading = false
     
-    @State private var metroStations: [String] = []
-    @State private var busStations: [String: [String]] = [:]
-    @State private var busDirections: [String] = []
+    @EnvironmentObject var stationManager: StationManager
+    
     @State private var selectedDirection: String = ""
+    @State private var showDirectionDialog = false
+    
+    private var busDirections: [String] { line.stationsByDirection?.keys.sorted() ?? [] }
+    private var isRingRoute: Bool { line.isBus && busDirections.count == 1 }
     
     private var displayedStations: [String] {
         if line.isMetro {
-            return metroStations
+            return line.stationsByDirection?["main"] ?? []
         } else {
-            return busStations[selectedDirection] ?? []
+            return line.stationsByDirection?[selectedDirection] ?? []
         }
     }
     
@@ -29,63 +31,101 @@ struct LineDetailView: View {
             lineHeader.padding()
             Divider()
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("stations").font(.headline).padding(.horizontal)
-                    
-                    if isLoading {
-                        ProgressView().frame(maxWidth: .infinity).padding()
-                    } else if displayedStations.isEmpty {
-                        Text("no_stations_available").foregroundColor(.secondary).padding()
+            List {
+                Section(header: Text(localizedString("stations")).font(.headline)) {
+                    if displayedStations.isEmpty {
+                        HStack { Spacer(); ProgressView(); Spacer() }
                     } else {
                         ForEach(Array(displayedStations.enumerated()), id: \.offset) { index, stationName in
-                            stationRow(stationName: stationName, index: index)
+                            if let station = stationManager.findStation(byName: stationName) {
+                                if #available(iOS 16.0, *) {
+                                    NavigationLink(value: station) {
+                                        stationRow(stationName: stationName, index: index)
+                                    }
+                                } else {
+                                    NavigationLink(destination: StationDetailView(station: station)) {
+                                        stationRow(stationName: stationName, index: index)
+                                    }
+                                }
+                            } else {
+                                stationRow(stationName: stationName, index: index)
+                            }
                         }
                     }
                 }
-                .padding(.vertical)
+            }
+            .listStyle(.plain)
+        }
+        .navigationTitle("")
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // If not set, set to the first direction available
+            if selectedDirection.isEmpty, let firstDirection = busDirections.first {
+                selectedDirection = firstDirection
             }
         }
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear(perform: loadStations)
+        .onChange(of: busDirections) { newDirections in
+            // If the available directions change and the selected direction is missing, set it to the first
+            if !newDirections.isEmpty && !newDirections.contains(selectedDirection) {
+                selectedDirection = newDirections.first ?? ""
+            }
+        }
+        .confirmationDialog(localizedString("choose_direction"), isPresented: $showDirectionDialog, titleVisibility: .visible) {
+            ForEach(busDirections, id: \.self) { direction in
+                Button(direction) { selectedDirection = direction }
+            }
+        }
     }
     
     private var lineHeader: some View {
-        HStack(alignment: .top) { // Align to top for better picker layout
-            RoundedRectangle(cornerRadius: 8)
-                .fill(line.isMetro ? LineColorHelper.getMetroLineColor(line.id) : LineColorHelper.getBusLineColor())
+        HStack(alignment: .top) {
+            RoundedRectangle(cornerRadius: 8).fill(line.isMetro ? LineColorHelper.getMetroLineColor(line.id) : LineColorHelper.getBusLineColor())
                 .frame(width: 60, height: 60)
                 .overlay(Image(systemName: line.isMetro ? "tram.fill" : "bus.fill").foregroundColor(.white).font(.title))
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(line.name ?? line.id).font(.title2).fontWeight(.bold)
-                Text(line.type?.capitalized ?? "Line").foregroundColor(.secondary)
+                Text(localizedString(line.type ?? "line")).foregroundColor(.secondary)
             }
             
             Spacer()
             
-            // The new Menu-style picker, only visible for multi-direction bus routes.
-            if line.isBus && busDirections.count > 1 {
-                Menu {
-                    ForEach(busDirections, id: \.self) { direction in
-                        Button(action: {
-                            selectedDirection = direction
-                        }) {
-                            Text(direction)
+            if isRingRoute {
+                Text(line.routeSummary ?? "")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding(.top, 4)
+            }
+            else if line.isBus && busDirections.count > 1 {
+                if #available(iOS 16.0, *) {
+                    Menu {
+                        ForEach(busDirections, id: \.self) { direction in
+                            Button(action: { selectedDirection = direction }) {
+                                Text(direction)
+                            }
                         }
-                    }
-                } label: {
-                    VStack { // Use a VStack for better label appearance
+                    } label: {
                         HStack {
                             Text(selectedDirection)
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.caption)
+                            Image(systemName: "chevron.up.chevron.down").font(.caption)
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .background(Color(UIColor.secondarySystemBackground))
                         .cornerRadius(8)
                     }
+                } else {
+                    Button(action: { showDirectionDialog = true }) {
+                        HStack {
+                            Text(selectedDirection)
+                            Image(systemName: "chevron.up.chevron.down").font(.caption)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .cornerRadius(8)
+                    }
+                    .disabled(busDirections.isEmpty)
                 }
             }
         }
@@ -94,47 +134,13 @@ struct LineDetailView: View {
     private func stationRow(stationName: String, index: Int) -> some View {
         HStack(spacing: 12) {
             ZStack {
-                Circle()
-                    .fill(line.isMetro ? LineColorHelper.getMetroLineColor(line.id) : LineColorHelper.getBusLineColor())
+                Circle().fill(line.isMetro ? LineColorHelper.getMetroLineColor(line.id) : LineColorHelper.getBusLineColor())
                     .frame(width: 32, height: 32)
                 Text("\(index + 1)").foregroundColor(.white).font(.caption).fontWeight(.bold)
             }
             Text(stationName).font(.body)
             Spacer()
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 4)
-    }
-    
-    private func loadStations() {
-        isLoading = true
-        Task {
-            do {
-                if line.isMetro {
-                    let fetchedStations = try await APIService.shared.getMetroStations(forLine: line.id)
-                    await MainActor.run {
-                        self.metroStations = fetchedStations
-                    }
-                } else {
-                    let fetchedBusStations = try await APIService.shared.getBusStations(forLine: line.id)
-                    await MainActor.run {
-                        self.busStations = fetchedBusStations
-                        self.busDirections = fetchedBusStations.keys.sorted()
-                        if let firstDirection = self.busDirections.first {
-                            self.selectedDirection = firstDirection
-                        }
-                    }
-                }
-            } catch {
-                print("Error loading stations for line \(line.id): \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
-            }
-            await MainActor.run { isLoading = false }
-        }
+        }.padding(.vertical, 4)
     }
 }
 
-#Preview {
-    NavigationView {
-        LineDetailView(line: Line(id: "1", name: "Blue Line", type: "metro", color: nil, directions: nil, stationsByDirection: nil, routeSummary: nil))
-    }
-}

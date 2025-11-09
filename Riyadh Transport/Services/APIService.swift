@@ -26,22 +26,25 @@ enum APIServiceError: Error, LocalizedError {
 
 private struct RouteResponse: Codable { let routes: [Route] }
 private struct StationsResponse: Codable { let stations: [String] }
+struct StationLinesResponse: Codable {
+    let metroLines: [String]
+    let busLines: [String]
+    
+    enum CodingKeys: String, CodingKey {
+        case metroLines = "metro_lines"
+        case busLines = "bus_lines"
+    }
+}
+
 
 class APIService {
     static let shared = APIService()
     private let baseURL = "https://mainserver.inirl.net:5002/"
     private init() {}
     
-    /// A helper function to automatically prepend the language code to the endpoint path.
     private func localizedEndpoint(for path: String) -> String {
         let selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
-        
-        if selectedLanguage == "ar" {
-            // Ensure there's no double slash if the base URL ends with one.
-            return baseURL + "ar/" + path
-        } else {
-            return baseURL + path
-        }
+        return baseURL + (selectedLanguage == "ar" ? "ar/" : "") + path
     }
     
     // MARK: - Stations
@@ -49,7 +52,8 @@ class APIService {
         try await performRequest(endpoint: localizedEndpoint(for: "api/stations"))
     }
     
-    func getNearbyStations(latitude: Double, longitude: Double) async throws -> [Station] {
+    // This function is now corrected to return the raw, coordinate-less model.
+    func getNearbyStations(latitude: Double, longitude: Double) async throws -> [NearbyStationRaw] {
         let parameters: [String: Any] = ["lat": latitude, "lng": longitude]
         return try await performRequest(endpoint: localizedEndpoint(for: "nearbystations"), method: "POST", parameters: parameters)
     }
@@ -60,6 +64,7 @@ class APIService {
         let response: RouteResponse = try await performRequest(endpoint: localizedEndpoint(for: "route_from_coords"), method: "POST", parameters: parameters)
         if let route = response.routes.first { return route } else { throw APIServiceError.noRouteFound }
     }
+    
     
     // MARK: - Arrivals
     func getMetroArrivals(stationName: String) async throws -> [String: Any] {
@@ -88,6 +93,12 @@ class APIService {
         return try await performRequest(endpoint: localizedEndpoint(for: "viewbus"), method: "POST", parameters: parameters)
     }
     
+    // MARK: - Station Lines
+    func getLinesForStation(stationName: String) async throws -> StationLinesResponse {
+        let parameters = ["station_name": stationName]
+        return try await performRequest(endpoint: localizedEndpoint(for: "searchstation"), method: "POST", parameters: parameters)
+    }
+    
     // MARK: - Generic Handlers
     private func performRequest<T: Decodable>(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil) async throws -> T {
         guard let url = URL(string: endpoint) else { throw APIServiceError.invalidURL }
@@ -97,8 +108,18 @@ class APIService {
         if let params = parameters, method == "POST" { request.httpBody = try? JSONSerialization.data(withJSONObject: params) }
         
         let (data, _) = try await URLSession.shared.data(for: request)
-        do { return try JSONDecoder().decode(T.self, from: data) }
-        catch { throw APIServiceError.decodingError(error) }
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        }
+        catch {
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("--- APIService DECODING ERROR ---")
+                print("Failed to decode \(T.self) from endpoint: \(endpoint)")
+                print("Server Response:\n\(responseString)")
+                print("---------------------------------")
+            }
+            throw APIServiceError.decodingError(error)
+        }
     }
     
     private func performRequestJSON(endpoint: String, method: String = "GET", parameters: [String: Any]? = nil) async throws -> [String: Any] {
