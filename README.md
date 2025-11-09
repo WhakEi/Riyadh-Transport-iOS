@@ -2,6 +2,17 @@
 
 A native iOS application for Riyadh public transport, built with Swift and SwiftUI. This app provides route planning, station information, and live arrival times for metro and bus services in Riyadh.
 
+<div style="display: flex;">
+    <img src="pics/routemap.PNG" alt="Route Map" style="width: 150px; margin-right: 10px;">
+    <img src="pics/routedetail.PNG" alt="Route Detail" style="width: 150px; margin-right: 10px">
+    <img src="pics/mapoptions.PNG" alt="Map Tap Options" style="width: 150px; margin-right: 10px">
+    <img src="pics/nearbystations.PNG" alt="Nearby Stations" style="width: 150px; margin-right: 10px">
+    <img src="pics/stationdetails.PNG" alt="Station Details" style="width: 150px; margin-right: 10px">
+    <img src="pics/linedetail.PNG" alt="Line's Stations" style="width: 150px; margin-right: 10px">
+    <img src="pics/favoritestations.PNG" alt="Favorite List" style="width: 150px; margin-right: 10px">
+    <img src="pics/searchhistory.PNG" alt="Search History" style="width: 150px">
+</div>
+
 ## Overview
 
 This iOS version is a port of the Android app, designed to provide a native iOS experience while retaining the core functionality. It uses **Apple Maps** instead of MapTiler for map display and follows iOS design patterns with SwiftUI.
@@ -14,14 +25,14 @@ This iOS version is a port of the Android app, designed to provide a native iOS 
 - ✅ **Interactive Map**: View stations and routes with Apple Maps
 - ✅ **GPS Location**: Use your current location as starting point
 - ✅ **Multilingual**: Supports English and Arabic (العربية)
-- ⚫️ **Favorites**: Save favorite stations and locations
+- ✅ **Favorites**: Save favorite stations and locations
 - ✅ **Search History**: Quickly access recently searched locations
 - ✅ **Dark Mode**: Automatic dark mode support
 - ✅ **Native iOS UI**: Built with SwiftUI for a native iOS experience
 
 ## Requirements
 
-- iOS 15.0 or later
+- iOS 15.0 or later (*Note:* iOS 15 does not support latest visual capabilites, UI may vary from screenshots)
 - Xcode 14.0 or later
 - Swift 5.7 or later
 - Active internet connection for API calls and map tiles
