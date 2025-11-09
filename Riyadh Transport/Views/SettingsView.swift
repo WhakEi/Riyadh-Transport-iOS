@@ -80,7 +80,10 @@ struct SettingsView: View {
     /// Clears all app caches.
     private func clearAllCaches() {
         URLCache.shared.removeAllCachedResponses()
-        clearLinesCache()
+        CacheManager.shared.clearAllLanguageCaches(forBaseKey: CacheManager.metroLinesCacheKey)
+        CacheManager.shared.clearAllLanguageCaches(forBaseKey: CacheManager.busLinesCacheKey)
+        // Also clear the new station data.
+        CacheManager.shared.clearAllStationData()
     }
 }
 
