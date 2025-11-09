@@ -20,13 +20,13 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ All stations list
 - ✅ Station search functionality
 - ✅ Nearby stations (GPS-based)
-- ⚫️ Station details view
-- ⚫️ Station type (Metro/Bus) indicators
+- ✅ Station details view
+- ✅ Station type (Metro/Bus) indicators
 - ⚫️ Live arrival times
 - ⚫️ Arrival refresh functionality
-- ⚫️ Metro/Bus arrival differentiation
-- ⚫️ Station favorites
-- ⚫️ Map preview in details
+- ✅ Metro/Bus arrival differentiation
+- ✅ Station favorites
+- ✅ Map preview in details
 
 ### Line Features
 - ✅ Metro lines list
@@ -35,7 +35,7 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Line details view
 - ✅ Color-coded lines
 - ✅ Station list per line
-- ⚫️ Line route summary
+- ✅ Line route summary
 - ✅ Line type indicators
 
 ### Map Integration
@@ -44,16 +44,16 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ User location display
 - ✅ Map centering on Riyadh
 - ✅ Interactive map controls
-- ⚫️ Annotation callouts
+- ✅ Annotation callouts
 - ✅ Color-coded markers
 - ✅ Map region updates
 
 ### Favorites & History
-- ⚫️ Favorite stations
+- ✅ Favorite stations
 - ⚫️ Favorite locations
 - ✅ Search history
-- ⚫️ Add to favorites
-- ⚫️ Remove from favorites
+- ✅ Add to favorites
+- ✅ Remove from favorites
 - ✅ Clear history function
 - ✅ Swipe to delete
 - ✅ Persistent storage
@@ -83,7 +83,7 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Error alerts
 - ✅ Empty state views
 - ✅ List views
-- ⚫️ Detail views
+- ✅ Detail views
 
 ### Location Services
 - ✅ GPS location access
@@ -184,7 +184,7 @@ Potential iOS-specific features:
 - ✅ Efficient rendering
 - ✅ Memory management
 - ✅ Background tasks
-- ⏳ Caching support
+- ✅ Caching support
 
 ### Accessibility
 - ✅ VoiceOver support (automatic)
