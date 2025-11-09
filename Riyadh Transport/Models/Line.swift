@@ -7,20 +7,18 @@
 
 import Foundation
 
-struct Line: Codable, Identifiable {
+struct Line: Codable, Identifiable, Hashable {
     var id: String
-    // Changed from 'let' to 'var' to allow localization to update the name.
     var name: String?
     let type: String?
     let color: String?
     let directions: [String]?
-    let stationsByDirection: [String: [String]]?
-    let routeSummary: String?
     
-    // Live arrival data (not serialized, runtime only)
-    var upcomingArrivals: [Int]?
-    var arrivalStatus: String? // "checking", "live", "hidden", "normal"
-    var destination: String?
+    // This will now be populated by our eager-loading process.
+    var stationsByDirection: [String: [String]]?
+    
+    // The route summary will be generated from the station data.
+    var routeSummary: String?
     
     var isMetro: Bool {
         return type?.lowercased() == "metro"
@@ -28,5 +26,14 @@ struct Line: Codable, Identifiable {
     
     var isBus: Bool {
         return type?.lowercased() == "bus"
+    }
+    
+    // Conform to Hashable for modern NavigationLinks
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    static func == (lhs: Line, rhs: Line) -> Bool {
+        lhs.id == rhs.id
     }
 }
