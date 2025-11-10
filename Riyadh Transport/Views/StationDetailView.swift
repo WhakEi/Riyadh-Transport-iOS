@@ -10,15 +10,43 @@ import MapKit
 
 struct StationDetailView: View {
     let station: Station
-    @State private var arrivals: [Arrival] = []
+    @State private var arrivals: [LiveArrival] = []
     @State private var stationLines: StationLinesResponse?
     @State private var isLoadingArrivals = false
     @State private var isLoadingLines = false
     
     @EnvironmentObject var favoritesManager: FavoritesManager
-    @EnvironmentObject var lineLoader: LineStationLoader // Use the shared instance from the environment
+    @EnvironmentObject var lineLoader: LineStationLoader
     
-    /// A helper to remove the (Metro) or (Bus) suffix from a station name.
+    // Helper struct to group arrivals for display (FIX: 'private' removed)
+    struct GroupedArrival: Identifiable {
+        let id: String
+        let line: String
+        let destination: String
+        let soonestArrival: LiveArrival
+        let upcomingArrivals: [LiveArrival]
+    }
+    
+    // Computed property to process and group the flat list of arrivals
+    private var groupedArrivals: [GroupedArrival] {
+        let groupedByLineAndDest = Dictionary(grouping: arrivals) { "\($0.line)-\($0.destination)" }
+        
+        return groupedByLineAndDest.values.compactMap { arrivalsInGroup -> GroupedArrival? in
+            let sortedGroup = arrivalsInGroup.sorted { $0.minutesUntil < $1.minutesUntil }
+            guard let soonest = sortedGroup.first else { return nil }
+            
+            let upcoming = Array(sortedGroup.dropFirst())
+            
+            return GroupedArrival(
+                id: "\(soonest.line)-\(soonest.destination)",
+                line: soonest.line,
+                destination: soonest.destination,
+                soonestArrival: soonest,
+                upcomingArrivals: upcoming
+            )
+        }.sorted { $0.soonestArrival.minutesUntil < $1.soonestArrival.minutesUntil }
+    }
+    
     private var cleanStationName: String {
         return station.rawName.replacingOccurrences(of: "\\s*\\(Metro\\)|\\s*\\(Bus\\)$", with: "", options: .regularExpression)
     }
@@ -45,7 +73,6 @@ struct StationDetailView: View {
                     let servingLines = findServingLines(from: lines)
                     
                     if servingLines.isEmpty && (!lines.metroLines.isEmpty || !lines.busLines.isEmpty) {
-                        // This can happen if the line list hasn't loaded yet
                         HStack { Spacer(); ProgressView(); Spacer() }
                     } else {
                         ForEach(servingLines) { line in
@@ -63,8 +90,8 @@ struct StationDetailView: View {
                 } else if arrivals.isEmpty {
                     Text(localizedString("no_arrivals")).foregroundColor(.secondary)
                 } else {
-                    ForEach(arrivals) { arrival in
-                        ArrivalRow(arrival: arrival)
+                    ForEach(groupedArrivals) { arrivalGroup in
+                        ArrivalRow(groupedArrival: arrivalGroup)
                     }
                 }
             }
@@ -149,7 +176,6 @@ struct StationDetailView: View {
         if line.isMetro {
             return line.routeSummary
         } else if line.isBus {
-            // Use the existing strippedStationSuffix() from StationManager via the Station model
             let currentStationName = self.station.displayName.strippedStationSuffix()
             for (direction, stationsInDirection) in line.stationsByDirection ?? [:] {
                 if stationsInDirection.contains(where: { $0.strippedStationSuffix() == currentStationName }) {
@@ -161,27 +187,24 @@ struct StationDetailView: View {
     }
     
     private func loadArrivals() {
-        guard arrivals.isEmpty else { return }
         isLoadingArrivals = true
         Task {
             do {
-                let data: [String: Any]
-                if station.isMetro {
-                    data = try await APIService.shared.getMetroArrivals(stationName: cleanStationName)
-                } else {
-                    data = try await APIService.shared.getBusArrivals(stationName: cleanStationName)
-                }
+                let response = try await LiveArrivalService.shared.fetchLiveArrivals(
+                    stationName: station.rawName,
+                    type: station.type ?? ""
+                )
+                
                 await MainActor.run {
-                    isLoadingArrivals = false
-                    parseArrivals(from: data)
+                    self.arrivals = response.arrivals
                 }
             } catch {
                 await MainActor.run {
-                    isLoadingArrivals = false
-                    print("Error loading arrivals for clean name '\(cleanStationName)': \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
+                    print("Error loading live arrivals for '\(station.rawName)': \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
                     self.arrivals = []
                 }
             }
+            await MainActor.run { isLoadingArrivals = false }
         }
     }
     
@@ -200,37 +223,32 @@ struct StationDetailView: View {
             await MainActor.run { isLoadingLines = false }
         }
     }
-    
-    private func parseArrivals(from data: [String: Any]) {
-        var newArrivals: [Arrival] = []
-        if let arrivalsData = data["arrivals"] as? [[String: Any]] {
-            for arrivalData in arrivalsData {
-                if let line = arrivalData["line"] as? String,
-                   let destination = arrivalData["destination"] as? String,
-                   let minutes = arrivalData["minutes"] as? Int {
-                    let arrival = Arrival(line: line, destination: destination, minutesUntil: minutes)
-                    newArrivals.append(arrival)
-                }
-            }
-        }
-        arrivals = newArrivals.sorted { $0.minutesUntil ?? 0 < $1.minutesUntil ?? 0 }
-    }
 }
 
 struct ArrivalRow: View {
-    let arrival: Arrival
+    let groupedArrival: StationDetailView.GroupedArrival
+    
     var body: some View {
         HStack {
             RoundedRectangle(cornerRadius: 4)
-                .fill(LineColorHelper.getMetroLineColor(arrival.line))
+                .fill(LineColorHelper.getMetroLineColor(groupedArrival.line))
                 .frame(width: 8)
+                
             VStack(alignment: .leading, spacing: 4) {
-                Text(LineColorHelper.getMetroLineName(arrival.line)).font(.headline)
-                Text(arrival.destination ?? "").font(.subheadline).foregroundColor(.secondary)
+                Text(LineColorHelper.getMetroLineName(groupedArrival.line)).font(.headline)
+                Text(groupedArrival.destination).font(.subheadline).foregroundColor(.secondary)
             }
+            
             Spacer()
-            Text(String(format: localizedString("minutes_count"), arrival.minutesUntil ?? 0))
-                .font(.headline).foregroundColor(.blue)
+            
+            let soonestMinutes = groupedArrival.soonestArrival.minutesUntil
+            let upcomingMinutes = groupedArrival.upcomingArrivals.map { $0.minutesUntil }
+            
+            LiveArrivalIndicator(
+                minutes: soonestMinutes,
+                status: soonestMinutes < 59 ? "live" : "normal",
+                upcomingArrivals: upcomingMinutes
+            )
         }
     }
 }

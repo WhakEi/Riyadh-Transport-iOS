@@ -30,6 +30,10 @@ struct RouteView: View {
     
     @State private var showingStartSearch = false
     @State private var showingEndSearch = false
+    
+    @State private var liveUpdateTimer: Timer?
+    @State private var isUpdatingLiveData = false
+    private let journeyUpdateManager = JourneyUpdateManager.shared
 
     var body: some View {
         ScrollView {
@@ -78,9 +82,18 @@ struct RouteView: View {
 
                 if let route = route {
                     VStack(alignment: .leading, spacing: 12) {
-                        Text(localizedString("route_details"))
-                            .font(.headline)
-                            .padding(.horizontal)
+                        HStack {
+                            Text(localizedString("route_details"))
+                                .font(.headline)
+                            
+                            Spacer()
+                            
+                            if isUpdatingLiveData {
+                                ProgressView()
+                                    .scaleEffect(0.8)
+                            }
+                        }
+                        .padding(.horizontal)
 
                         Text(String(format: localizedString("total_time"), route.totalMinutes))
                             .font(.subheadline)
@@ -122,6 +135,10 @@ struct RouteView: View {
         }
         .onAppear {
             handleMapAction()
+            startLiveUpdates()
+        }
+        .onDisappear {
+            stopLiveUpdates()
         }
     }
     
@@ -200,6 +217,8 @@ struct RouteView: View {
                     isLoading = false
                     self.route = foundRoute
                     self.displayedRoute = foundRoute
+                    // Start fetching live data immediately
+                    updateLiveData()
                 }
             } catch {
                 await MainActor.run {
@@ -213,9 +232,49 @@ struct RouteView: View {
             }
         }
     }
+    
+    // MARK: - Live Update Methods
+    
+    private func startLiveUpdates() {
+        // Start timer for 60-second updates
+        liveUpdateTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+            updateLiveData()
+        }
+    }
+    
+    private func stopLiveUpdates() {
+        liveUpdateTimer?.invalidate()
+        liveUpdateTimer = nil
+    }
+    
+    private func updateLiveData() {
+        guard let currentRoute = route, !isUpdatingLiveData else { return }
+        
+        // Check if route has any bus/metro segments
+        let hasTransitSegments = currentRoute.segments.contains { $0.isBus || $0.isMetro }
+        guard hasTransitSegments else { return }
+        
+        isUpdatingLiveData = true
+        
+        Task {
+            do {
+                let (updatedRoute, _) = try await journeyUpdateManager.updateRouteWithLiveData(currentRoute)
+                
+                await MainActor.run {
+                    self.route = updatedRoute
+                    self.displayedRoute = updatedRoute
+                    self.isUpdatingLiveData = false
+                }
+            } catch {
+                await MainActor.run {
+                    print("Error updating live data: \(error)")
+                    self.isUpdatingLiveData = false
+                }
+            }
+        }
+    }
 }
 
-// LocationFieldButton and RouteSegmentRow remain unchanged...
 
 struct LocationFieldButton: View {
     let placeholder: String
@@ -247,14 +306,27 @@ struct RouteSegmentRow: View {
                 .fill(LineColorHelper.getColorForSegment(type: segment.type, line: segment.line))
                 .frame(width: 40, height: 40)
                 .overlay(Image(systemName: iconForSegment).foregroundColor(.white))
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(titleText)
                     .font(.headline)
                 if let subtitle = subtitleText {
                     Text(subtitle).font(.subheadline).foregroundColor(.secondary)
                 }
-            }.padding(.vertical, 4)
-            Spacer()
+            }
+            .padding(.vertical, 4)
+            
+            Spacer(minLength: 0)
+            
+            // --- UPDATED: Pass upcomingArrivals to LiveArrivalIndicator and simplify logic ---
+            if let status = segment.arrivalStatus, status != "hidden" {
+                LiveArrivalIndicator(
+                    minutes: segment.nextArrivalMinutes ?? 0,
+                    status: status,
+                    upcomingArrivals: segment.upcomingArrivals
+                )
+                .padding(.vertical, 4)
+            }
         }
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
@@ -286,13 +358,18 @@ struct RouteSegmentRow: View {
             
             let localizedLineName = segment.isMetro ? LineColorHelper.getMetroLineName(lineIdentifier) : lineIdentifier
             
-            let takeInstructionFormat = localizedString(segment.isBus ? "route_take_bus" : "route_take_metro")
-            let disembarkInstructionFormat = localizedString("route_disembark_at")
-            
-            let takeInstruction = String(format: takeInstructionFormat, localizedLineName)
-            let disembarkInstruction = String(format: disembarkInstructionFormat, lastStation)
-            
-            return "\(takeInstruction) \(disembarkInstruction)"
+            if let refinedTerminus = segment.refinedTerminus {
+                let lineName = segment.isBus ? "Bus \(lineIdentifier)" : localizedLineName
+                return String(format: localizedString("route_towards"), lineName, refinedTerminus, lastStation)
+            } else {
+                let takeInstructionFormat = localizedString(segment.isBus ? "route_take_bus" : "route_take_metro")
+                let disembarkInstructionFormat = localizedString("route_disembark_at")
+                
+                let takeInstruction = String(format: takeInstructionFormat, localizedLineName)
+                let disembarkInstruction = String(format: disembarkInstructionFormat, lastStation)
+                
+                return "\(takeInstruction) \(disembarkInstruction)"
+            }
         }
         
         return localizedString("route_travel_segment")

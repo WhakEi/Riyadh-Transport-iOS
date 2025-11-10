@@ -45,6 +45,24 @@ struct LineColorHelper {
         return localizedString(localizationKey, comment: "Metro line name")
     }
     
+    /// Takes a line identifier (e.g., "1" or "Orange Line") and returns the canonical number identifier ("1"-"6").
+    /// For bus lines or non-matching strings, it returns the original identifier.
+    static func getCanonicalLineIdentifier(_ identifier: String?) -> String? {
+        guard let identifier = identifier else { return nil }
+        
+        let cleanIdentifier = identifier.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        
+        switch cleanIdentifier {
+        case "blue line", "1": return "1"
+        case "red line", "2": return "2"
+        case "orange line", "3": return "3"
+        case "yellow line", "4": return "4"
+        case "green line", "5": return "5"
+        case "purple line", "6": return "6"
+        default: return identifier // For bus lines etc., return the original.
+        }
+    }
+    
     static func getBusLineColor() -> Color {
         return Color(red: 0.0, green: 0.6, blue: 0.4)
     }

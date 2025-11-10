@@ -36,6 +36,11 @@
 "stops_count" = "%d stops";
 "minutes_count" = "%d mins";
 "one_minute" = "1 min";
+"one_stop" = "1 stop";
+"route_towards" = "Take %1$@ towards %2$@ and Disembark at %3$@";
+"arriving_now" = "Arriving now";
+"minutes_short" = "%d mins";
+"checking_arrivals" = "Checking...";
 
 /* Search */
 "search_location" = "Search Location";
