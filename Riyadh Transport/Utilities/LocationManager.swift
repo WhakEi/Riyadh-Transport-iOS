@@ -49,6 +49,23 @@ class LocationManager: NSObject, ObservableObject {
             }
         }
     }
+    
+    // Async version for modern Swift concurrency
+    func requestLocation() async -> CLLocation? {
+        if let location = location {
+            return location
+        }
+        
+        startUpdatingLocation()
+        
+        // Wait for location update
+        try? await Task.sleep(nanoseconds: 2_000_000_000)
+        
+        let currentLocation = location
+        stopUpdatingLocation()
+        
+        return currentLocation
+    }
 }
 
 extension LocationManager: CLLocationManagerDelegate {
