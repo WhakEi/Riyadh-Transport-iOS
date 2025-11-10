@@ -22,8 +22,8 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Nearby stations (GPS-based)
 - ✅ Station details view
 - ✅ Station type (Metro/Bus) indicators
-- ⚫️ Live arrival times
-- ⚫️ Arrival refresh functionality
+- ✅ Live arrival times
+- ✅ Arrival refresh functionality
 - ✅ Metro/Bus arrival differentiation
 - ✅ Station favorites
 - ✅ Map preview in details
