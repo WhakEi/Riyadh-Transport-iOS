@@ -96,8 +96,10 @@ class LiveArrivalService {
     
     /// Fetch live arrivals for a station (primary method)
     func fetchLiveArrivals(stationName: String, type: String) async throws -> LiveArrivalResponse {
+        let cleanStationName = stationName.strippedStationSuffix()
+        
         let endpoint = type.lowercased() == "metro" ? "metro_arrivals" : "bus_arrivals"
-        let parameters: [String: String] = ["station_name": stationName]
+        let parameters: [String: String] = ["station_name": cleanStationName]
         
         do {
             let response: LiveArrivalResponse = try await performRequest(
@@ -105,51 +107,85 @@ class LiveArrivalService {
                 method: "POST",
                 parameters: parameters
             )
-            return response
+            if response.arrivals.isEmpty {
+                print("--- LiveArrivalService: Primary API returned empty arrivals for '\(cleanStationName)'. Attempting fallback...")
+                return try await fetchLiveArrivalsFallback(stationName: cleanStationName, type: type)
+            }
+            
+            // Refine the terminus for each arrival from the primary API
+            let refinedArrivals = try await withThrowingTaskGroup(of: LiveArrival.self) { group -> [LiveArrival] in
+                for arrival in response.arrivals {
+                    group.addTask {
+                        let refinedDestination = try await self.refineTerminus(
+                            lineNumber: arrival.line,
+                            apiDestination: arrival.destination
+                        )
+                        return LiveArrival(
+                            line: arrival.line,
+                            destination: refinedDestination,
+                            minutesUntil: arrival.minutesUntil
+                        )
+                    }
+                }
+                
+                var results = [LiveArrival]()
+                for try await arrival in group {
+                    results.append(arrival)
+                }
+                return results
+            }
+            
+            return LiveArrivalResponse(arrivals: refinedArrivals, stationName: response.stationName)
+
         } catch {
-            // If primary API fails, try fallback
-            return try await fetchLiveArrivalsFallback(stationName: stationName, type: type)
+            print("--- LiveArrivalService: Primary API failed for '\(cleanStationName)'. Error: \(error.localizedDescription). Attempting fallback...")
+            return try await fetchLiveArrivalsFallback(stationName: cleanStationName, type: type)
         }
     }
     
     // MARK: - Fallback Flow
     
-    /// Fallback method when primary API fails
     private func fetchLiveArrivalsFallback(stationName: String, type: String) async throws -> LiveArrivalResponse {
-        // Step 1: Get station ID
-        let stationIdResponse = try await getStationId(stationName: stationName)
-        
-        guard let match = stationIdResponse.matches.first else {
-            throw LiveArrivalError.noStationIdFound
-        }
-        
-        // Step 2: Get raw arrivals from rpt.sa
-        let rawArrivals = try await getRawArrivals(stationId: match.stationId)
-        
-        // Step 3: Convert raw arrivals to LiveArrival format
-        var liveArrivals: [LiveArrival] = []
-        
-        for rawArrival in rawArrivals {
-            // Parse the time and calculate minutes until departure
-            let minutesUntil = try calculateMinutesUntil(from: rawArrival.actualDepartureTimePlanned)
+        do {
+            let stationIdResponse = try await getStationId(stationName: stationName)
             
-            // Get refined terminus
-            let refinedDestination = try await refineTerminus(
-                lineNumber: rawArrival.number,
-                apiDestination: rawArrival.destination
-            )
+            guard let match = stationIdResponse.matches.first else {
+                throw LiveArrivalError.noStationIdFound
+            }
             
-            liveArrivals.append(LiveArrival(
-                line: rawArrival.number,
-                destination: refinedDestination,
-                minutesUntil: minutesUntil
-            ))
+            let rawArrivals = try await getRawArrivals(stationId: match.stationId)
+            
+            let liveArrivals = try await withThrowingTaskGroup(of: LiveArrival.self) { group -> [LiveArrival] in
+                for rawArrival in rawArrivals {
+                    group.addTask {
+                        let minutesUntil = try self.calculateMinutesUntil(from: rawArrival.actualDepartureTimePlanned)
+                        let refinedDestination = try await self.refineTerminus(
+                            lineNumber: rawArrival.number,
+                            apiDestination: rawArrival.destination
+                        )
+                        return LiveArrival(
+                            line: rawArrival.number,
+                            destination: refinedDestination,
+                            minutesUntil: minutesUntil
+                        )
+                    }
+                }
+                
+                var results = [LiveArrival]()
+                for try await arrival in group {
+                    results.append(arrival)
+                }
+                return results
+            }
+            
+            return LiveArrivalResponse(arrivals: liveArrivals, stationName: stationName)
+
+        } catch {
+            print("--- LiveArrivalService: Fallback failed for '\(stationName)'. Error: \(error.localizedDescription)")
+            throw error
         }
-        
-        return LiveArrivalResponse(arrivals: liveArrivals, stationName: stationName)
     }
     
-    /// Step 1: Get station ID from station name
     private func getStationId(stationName: String) async throws -> StationIdResponse {
         let parameters: [String: String] = ["station_name": stationName]
         return try await performRequest(
@@ -159,7 +195,6 @@ class LiveArrivalService {
         )
     }
     
-    /// Step 2: Get raw arrivals from rpt.sa website
     private func getRawArrivals(stationId: String) async throws -> [RawArrival] {
         let urlString = fallbackURL + "?p_p_id=com_rcrc_stations_RcrcStationDetailsPortlet_INSTANCE_53WVbOYPfpUF&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=%2Fdeparture-monitor&p_p_cacheability=cacheLevelPage"
         
@@ -169,6 +204,7 @@ class LiveArrivalService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
+        request.timeoutInterval = 15
         request.setValue("application/x-www-form-urlencoded; charset=UTF-8", forHTTPHeaderField: "Content-Type")
         request.setValue("application/json, text/javascript, */*; q=0.01", forHTTPHeaderField: "Accept")
         request.setValue("XMLHttpRequest", forHTTPHeaderField: "X-Requested-With")
@@ -176,18 +212,33 @@ class LiveArrivalService {
         let bodyString = "_com_rcrc_stations_RcrcStationDetailsPortlet_INSTANCE_53WVbOYPfpUF_busStopId=\(stationId)"
         request.httpBody = bodyString.data(using: .utf8)
         
-        let (data, _) = try await URLSession.shared.data(for: request)
+        print("--- LiveArrivalService (Fallback): Sending request to \(url) with body: \(bodyString)")
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            print("--- LiveArrivalService: Fallback HTTP \(httpResponse.statusCode)")
+            throw LiveArrivalError.networkError(NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: nil))
+        }
         
         do {
-            let arrivals = try JSONDecoder().decode([RawArrival].self, from: data)
-            return arrivals
+            return try JSONDecoder().decode([RawArrival].self, from: data)
         } catch {
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("--- LiveArrivalService DECODING ERROR (Fallback) ---")
+                print("Failed to decode [RawArrival] from fallback endpoint:")
+                print("Server Response:\n\(responseString)")
+                print("-----------------------------------------")
+            }
             throw LiveArrivalError.decodingError(error)
         }
     }
     
-    /// Step 3: Refine terminus destination name
+    /// Only call the refineTerminus API for bus lines; for metro, just return apiDestination.
     private func refineTerminus(lineNumber: String, apiDestination: String) async throws -> String {
+        if isMetroLine(lineNumber) {
+            return apiDestination
+        }
         let parameters: [String: String] = [
             "line_number": lineNumber,
             "api_destination": apiDestination
@@ -201,20 +252,25 @@ class LiveArrivalService {
             )
             return response.refinedTerminus
         } catch {
-            // If refinement fails, return original destination
             return apiDestination
         }
     }
     
+    /// Identifies if the line is a metro line by your project rule: "1"..."6" (no letters)
+    private func isMetroLine(_ lineNumber: String) -> Bool {
+        if let num = Int(lineNumber), (1...6).contains(num), lineNumber.trimmingCharacters(in: .whitespacesAndNewlines) == String(num) {
+            return true
+        }
+        return false
+    }
+    
     // MARK: - Helper Methods
     
-    /// Calculate minutes until departure from ISO8601 timestamp
-    private func calculateMinutesUntil(from isoString: String) throws -> Int {
+    nonisolated private func calculateMinutesUntil(from isoString: String) throws -> Int {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         
         guard let departureDate = formatter.date(from: isoString) else {
-            // Try without fractional seconds
             formatter.formatOptions = [.withInternetDateTime]
             guard let departureDate = formatter.date(from: isoString) else {
                 throw LiveArrivalError.invalidDateFormat
@@ -242,13 +298,24 @@ class LiveArrivalService {
         
         var request = URLRequest(url: url)
         request.httpMethod = method
+        request.timeoutInterval = 15
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         
         if let params = parameters, method == "POST" {
             request.httpBody = try? JSONSerialization.data(withJSONObject: params)
         }
         
-        let (data, _) = try await URLSession.shared.data(for: request)
+        print("--- LiveArrivalService: Sending \(method) request to \(url)")
+        if let parameters {
+            print("--- LiveArrivalService: Parameters: \(parameters)")
+        }
+        
+        let (data, response) = try await URLSession.shared.data(for: request)
+        
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode != 200 {
+            print("--- LiveArrivalService: Received HTTP \(httpResponse.statusCode) from \(endpoint)")
+            throw LiveArrivalError.networkError(NSError(domain: "HTTPError", code: httpResponse.statusCode, userInfo: nil))
+        }
         
         do {
             return try JSONDecoder().decode(T.self, from: data)
