@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+// Extend LiveArrival to be Identifiable for watchOS views
+extension LiveArrival: Identifiable {
+    var id: String { "\(line)-\(destination)-\(minutesUntil)" }
+}
+
 struct WatchStationDetailView: View {
     let station: Station
     @State private var arrivals: [LiveArrival] = []
@@ -210,83 +215,6 @@ struct ArrivalRow: View {
         if minutes <= 2 { return .red }
         if minutes <= 5 { return .orange }
         return .primary
-    }
-}
-
-// MARK: - Live Arrival Model
-struct LiveArrival: Identifiable, Codable {
-    var id: String { UUID().uuidString }
-    let line: String
-    let destination: String
-    let minutesUntil: Int
-    
-    enum CodingKeys: String, CodingKey {
-        case line
-        case destination
-        case minutesUntil = "minutes_until"
-    }
-}
-
-// MARK: - Live Arrival Response
-struct LiveArrivalResponse: Codable {
-    let arrivals: [LiveArrival]
-}
-
-// MARK: - Live Arrival Service
-class LiveArrivalService {
-    static let shared = LiveArrivalService()
-    private init() {}
-    
-    func fetchLiveArrivals(stationName: String, type: String) async throws -> LiveArrivalResponse {
-        let endpoint = type.lowercased() == "metro" ? "metro_arrivals" : "bus_arrivals"
-        
-        // Use localized endpoint
-        let selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
-        let baseURL = "https://mainserver.inirl.net:5002/"
-        let fullEndpoint = baseURL + (selectedLanguage == "ar" ? "ar/" : "") + endpoint
-        
-        guard let url = URL(string: fullEndpoint) else {
-            throw NSError(domain: "Invalid URL", code: -1, userInfo: nil)
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
-        let parameters: [String: String] = ["station_name": stationName]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: parameters)
-        
-        let (data, _) = try await URLSession.shared.data(for: request)
-        
-        // Try to parse the response
-        do {
-            let response = try JSONDecoder().decode(LiveArrivalResponse.self, from: data)
-            return response
-        } catch {
-            // If decoding fails, try parsing as dictionary
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-               let arrivalsArray = json["arrivals"] as? [[String: Any]] {
-                
-                let arrivals = arrivalsArray.compactMap { dict -> LiveArrival? in
-                    guard let line = dict["line"] as? String,
-                          let destination = dict["destination"] as? String,
-                          let minutesUntil = dict["minutes_until"] as? Int else {
-                        return nil
-                    }
-                    
-                    // Create LiveArrival manually since we can't use the decoder
-                    return LiveArrival(
-                        line: line,
-                        destination: destination,
-                        minutesUntil: minutesUntil
-                    )
-                }
-                
-                return LiveArrivalResponse(arrivals: arrivals)
-            }
-            
-            throw error
-        }
     }
 }
 
