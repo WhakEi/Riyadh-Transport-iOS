@@ -258,7 +258,7 @@ struct RouteView: View {
         
         Task {
             do {
-                let (updatedRoute, newTotalMinutes) = try await journeyUpdateManager.updateRouteWithLiveData(currentRoute)
+                let (updatedRoute, _) = try await journeyUpdateManager.updateRouteWithLiveData(currentRoute)
                 
                 await MainActor.run {
                     self.route = updatedRoute
@@ -275,7 +275,6 @@ struct RouteView: View {
     }
 }
 
-// LocationFieldButton and RouteSegmentRow remain unchanged...
 
 struct LocationFieldButton: View {
     let placeholder: String
@@ -307,47 +306,26 @@ struct RouteSegmentRow: View {
                 .fill(LineColorHelper.getColorForSegment(type: segment.type, line: segment.line))
                 .frame(width: 40, height: 40)
                 .overlay(Image(systemName: iconForSegment).foregroundColor(.white))
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(titleText)
                     .font(.headline)
                 if let subtitle = subtitleText {
                     Text(subtitle).font(.subheadline).foregroundColor(.secondary)
                 }
-                
-                // Show upcoming arrivals for transit segments
-                if (segment.isBus || segment.isMetro), let arrivals = segment.upcomingArrivals, !arrivals.isEmpty {
-                    HStack(spacing: 8) {
-                        ForEach(arrivals.prefix(3), id: \.self) { minutes in
-                            Text("\(minutes) min")
-                                .font(.caption)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.green.opacity(0.2))
-                                .foregroundColor(.green)
-                                .cornerRadius(4)
-                        }
-                    }
-                    .padding(.top, 2)
-                }
-            }.padding(.vertical, 4)
+            }
+            .padding(.vertical, 4)
             
-            Spacer()
+            Spacer(minLength: 0)
             
-            // Live arrival indicator for transit segments
-            if (segment.isBus || segment.isMetro) && segment.arrivalStatus != "hidden" {
-                VStack(alignment: .trailing) {
-                    if let nextArrival = segment.nextArrivalMinutes {
-                        LiveArrivalIndicator(
-                            minutes: nextArrival,
-                            status: segment.arrivalStatus
-                        )
-                    } else if segment.arrivalStatus == "checking" {
-                        LiveArrivalIndicator(
-                            minutes: 0,
-                            status: "checking"
-                        )
-                    }
-                }
+            // --- UPDATED: Pass upcomingArrivals to LiveArrivalIndicator and simplify logic ---
+            if let status = segment.arrivalStatus, status != "hidden" {
+                LiveArrivalIndicator(
+                    minutes: segment.nextArrivalMinutes ?? 0,
+                    status: status,
+                    upcomingArrivals: segment.upcomingArrivals
+                )
+                .padding(.vertical, 4)
             }
         }
         .padding()
@@ -380,12 +358,10 @@ struct RouteSegmentRow: View {
             
             let localizedLineName = segment.isMetro ? LineColorHelper.getMetroLineName(lineIdentifier) : lineIdentifier
             
-            // If we have refined terminus from live data, use enhanced format
             if let refinedTerminus = segment.refinedTerminus {
                 let lineName = segment.isBus ? "Bus \(lineIdentifier)" : localizedLineName
                 return String(format: localizedString("route_towards"), lineName, refinedTerminus, lastStation)
             } else {
-                // Otherwise use original format
                 let takeInstructionFormat = localizedString(segment.isBus ? "route_take_bus" : "route_take_metro")
                 let disembarkInstructionFormat = localizedString("route_disembark_at")
                 
