@@ -13,51 +13,42 @@ class LineStationLoader: ObservableObject {
     
     private var stationFetchTask: Task<Void, Never>?
 
-    // **THE FIX**: New, simpler cache keys for the complete data sets.
     private let metroLinesCacheKey = "cachedCompleteMetroLines"
     private let busLinesCacheKey = "cachedCompleteBusLines"
 
     func loadLineList() {
         guard lines.isEmpty else { return }
 
-        // **THE FIX**: We now check for the complete, cached data.
-        // If it exists, we load it and are done. No more network calls.
         if let cachedMetro: [Line] = CacheManager.shared.loadData(forKey: metroLinesCacheKey, maxAgeInDays: 7),
            let cachedBus: [Line] = CacheManager.shared.loadData(forKey: busLinesCacheKey, maxAgeInDays: 7) {
             processAndSortLines(metro: cachedMetro, bus: cachedBus)
             return
         }
         
-        // If cache is empty or expired, fetch everything from the network.
         fetchAndCacheAllLineData()
     }
     
-    // **THE FIX**: This function is now the single source of truth for fetching and caching.
     private func fetchAndCacheAllLineData() {
         isLoadingList = true
-        stationFetchTask?.cancel() // Cancel any previous tasks
+        stationFetchTask?.cancel()
         
         stationFetchTask = Task {
             do {
-                // 1. Fetch the basic list of line IDs first.
                 async let metroData = APIService.shared.getMetroLines()
                 async let busData = APIService.shared.getBusLines()
                 
                 let initialMetroLines = parseLines(from: try await metroData, type: .metro)
                 let initialBusLines = parseLines(from: try await busData, type: .bus)
                 
-                // 2. Concurrently fetch stations for all lines and create complete Line objects.
                 async let completeMetroLines = fetchStationsForAll(lines: initialMetroLines)
                 async let completeBusLines = fetchStationsForAll(lines: initialBusLines)
                 
                 let finalMetroLines = try await completeMetroLines
                 let finalBusLines = try await completeBusLines
                 
-                // 3. Cache the complete, fully-populated arrays.
                 CacheManager.shared.saveData(finalMetroLines, forKey: metroLinesCacheKey)
                 CacheManager.shared.saveData(finalBusLines, forKey: busLinesCacheKey)
 
-                // 4. Process and publish the final results.
                 processAndSortLines(metro: finalMetroLines, bus: finalBusLines)
                 isLoadingList = false
                 
@@ -68,7 +59,6 @@ class LineStationLoader: ObservableObject {
         }
     }
     
-    // **THE FIX**: A new helper to fetch station data for an array of lines concurrently.
     private func fetchStationsForAll(lines: [Line]) async throws -> [Line] {
         try await withThrowingTaskGroup(of: Line.self) { group in
             var completeLines = [Line]()
@@ -77,14 +67,14 @@ class LineStationLoader: ObservableObject {
             for line in lines {
                 group.addTask {
                     var updatedLine = line
-                    if line.isMetro {
+                    // **THE FIX**: Make a local, non-isolated copy of the property before using it in the task.
+                    let isMetro = line.isMetro
+                    if isMetro {
                         let stations = try await APIService.shared.getMetroStations(forLine: line.id)
                         updatedLine.stationsByDirection = ["main": stations]
                     } else {
                         updatedLine.stationsByDirection = try await APIService.shared.getBusStations(forLine: line.id)
                     }
-                    // Also generate the summary here
-                    updatedLine.routeSummary = self.generateRouteSummary(for: updatedLine)
                     return updatedLine
                 }
             }
@@ -97,9 +87,7 @@ class LineStationLoader: ObservableObject {
         }
     }
     
-    // **THE FIX**: This method is marked 'nonisolated' because it doesn't touch any
-    // of the actor's state and is safe to call from a background thread.
-    nonisolated private func generateRouteSummary(for line: Line) -> String {
+    private func generateRouteSummary(for line: Line) -> String {
         guard let stationData = line.stationsByDirection else { return "" }
         
         if line.isMetro {
@@ -117,13 +105,24 @@ class LineStationLoader: ObservableObject {
     }
     
     private func processAndSortLines(metro: [Line], bus: [Line]) {
-        let localizedMetroLines = metro.map { line -> Line in
+        var completeMetro = metro
+        var completeBus = bus
+
+        // **THE FIX**: Generate summaries here on the MainActor, after all data is fetched.
+        for i in completeMetro.indices {
+            completeMetro[i].routeSummary = generateRouteSummary(for: completeMetro[i])
+        }
+        for i in completeBus.indices {
+            completeBus[i].routeSummary = generateRouteSummary(for: completeBus[i])
+        }
+
+        let localizedMetroLines = completeMetro.map { line -> Line in
             var mutableLine = line
             mutableLine.name = LineColorHelper.getMetroLineName(line.id)
             return mutableLine
         }
         let sortedMetro = localizedMetroLines.sorted { ($0.name ?? "").localizedStandardCompare($1.name ?? "") == .orderedAscending }
-        let sortedBuses = bus.sorted { l1, l2 in
+        let sortedBuses = completeBus.sorted { l1, l2 in
             let n1 = l1.name ?? ""; let n2 = l2.name ?? ""
             let isBRT1 = n1.uppercased().hasPrefix("BRT"); let isBRT2 = n2.uppercased().hasPrefix("BRT")
             if isBRT1 != isBRT2 { return isBRT1 }
