@@ -8,6 +8,7 @@
 import SwiftUI
 import CoreLocation
 
+// MARK: - Main View & Data Flow
 struct WatchRouteView: View {
     @EnvironmentObject var locationManager: LocationManager
     @EnvironmentObject var favoritesManager: FavoritesManager
@@ -20,126 +21,51 @@ struct WatchRouteView: View {
     
     var body: some View {
         Group {
-            if route == nil {
-                destinationSelectionView
-            } else {
+            if route != nil {
                 RouteInstructionsView(route: $route)
+            } else {
+                VStack {
+                    if isLoading {
+                        ProgressView("Finding Route...")
+                    } else if let error = errorMessage {
+                        Text(error).font(.caption).foregroundColor(.red).multilineTextAlignment(.center)
+                        Button("Retry") { showingDestinationPicker = true }.padding(.top, 8)
+                    } else {
+                        Text("Select a destination").foregroundColor(.secondary)
+                    }
+                }
             }
         }
         .navigationTitle("Search Route")
         .navigationBarTitleDisplayMode(.inline)
-    }
-    
-    private var destinationSelectionView: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                // Starting point (always user location)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("From")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    HStack {
-                        Image(systemName: "location.fill")
-                            .foregroundColor(.green)
-                        Text("My Location")
-                            .font(.subheadline)
-                    }
-                    .padding(8)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(UIColor.systemGray6))
-                    .cornerRadius(8)
-                }
-                
-                // Destination picker
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("To")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Button(action: { showingDestinationPicker = true }) {
-                        HStack {
-                            Image(systemName: "mappin.circle.fill")
-                                .foregroundColor(.red)
-                            Text(selectedDestination?.name ?? "Select Destination")
-                                .font(.subheadline)
-                                .lineLimit(1)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(8)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color(UIColor.systemGray6))
-                        .cornerRadius(8)
-                    }
-                    .buttonStyle(.plain)
-                }
-                
-                // Find route button
-                if selectedDestination != nil {
-                    Button(action: findRoute) {
-                        if isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                        } else {
-                            Text("Find Route")
-                                .fontWeight(.semibold)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                    .disabled(isLoading)
-                }
-                
-                // Error message
-                if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                }
+        .onAppear {
+            if route == nil {
+                DispatchQueue.main.async { showingDestinationPicker = true }
             }
-            .padding()
         }
         .sheet(isPresented: $showingDestinationPicker) {
             DestinationPickerView(selectedDestination: $selectedDestination)
+        }
+        .onChange(of: selectedDestination) {
+            if selectedDestination != nil {
+                findRoute()
+            }
         }
     }
     
     private func findRoute() {
         guard let destination = selectedDestination else { return }
-        guard let userLocation = locationManager.location else {
-            errorMessage = "Unable to get your location"
-            return
-        }
-        
-        isLoading = true
-        errorMessage = nil
-        
         Task {
+            isLoading = true
+            errorMessage = nil
+            guard let userLocation = await locationManager.requestLocation() else {
+                errorMessage = "Unable to get your location. Please check settings."; isLoading = false; return
+            }
             do {
-                let foundRoute = try await APIService.shared.findRoute(
-                    startLat: userLocation.coordinate.latitude,
-                    startLng: userLocation.coordinate.longitude,
-                    endLat: destination.latitude,
-                    endLng: destination.longitude
-                )
-                
-                await MainActor.run {
-                    self.route = foundRoute
-                    self.isLoading = false
-                    
-                    // Add to search history
-                    favoritesManager.addToSearchHistory(destination)
-                }
+                let foundRoute = try await APIService.shared.findRoute(startLat: userLocation.coordinate.latitude, startLng: userLocation.coordinate.longitude, endLat: destination.latitude, endLng: destination.longitude)
+                await MainActor.run { self.route = foundRoute; self.isLoading = false; favoritesManager.addToSearchHistory(destination) }
             } catch {
-                await MainActor.run {
-                    self.errorMessage = "Route not found"
-                    self.isLoading = false
-                }
+                await MainActor.run { self.errorMessage = (error as? LocalizedError)?.errorDescription ?? "Route not found"; self.isLoading = false }
             }
         }
     }
@@ -154,268 +80,203 @@ struct DestinationPickerView: View {
     var body: some View {
         NavigationView {
             List {
-                // Favorites
                 if !favoritesManager.favoriteLocations.isEmpty {
-                    Section(header: Text("Favorites")) {
-                        ForEach(favoritesManager.favoriteLocations) { location in
-                            Button(action: {
-                                selectedDestination = location
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Image(systemName: "star.fill")
-                                        .foregroundColor(.orange)
-                                        .font(.caption)
-                                    Text(location.name)
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                    }
+                    Section(header: Text("Favorites")) { ForEach(favoritesManager.favoriteLocations) { location in Button(action: { select(location) }) { HStack { Image(systemName: "star.fill").foregroundColor(.orange).font(.caption); Text(location.name).font(.subheadline) } } } }
                 }
-                
-                // Favorite Stations
                 if !favoritesManager.favoriteStations.isEmpty {
-                    Section(header: Text("Favorite Stations")) {
-                        ForEach(favoritesManager.favoriteStations) { station in
-                            Button(action: {
-                                selectedDestination = SearchResult(
-                                    name: station.displayName,
-                                    latitude: station.latitude,
-                                    longitude: station.longitude,
-                                    type: .station,
-                                    stationId: station.id
-                                )
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Image(systemName: station.isMetro ? "tram.fill" : "bus.fill")
-                                        .foregroundColor(station.isMetro ? .blue : .green)
-                                        .font(.caption)
-                                    Text(station.displayName)
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                    }
+                    Section(header: Text("Favorite Stations")) { ForEach(favoritesManager.favoriteStations) { station in let result = SearchResult(name: station.displayName, latitude: station.latitude, longitude: station.longitude, type: .station, stationId: station.id); Button(action: { select(result) }) { HStack { Image(systemName: station.isMetro ? "tram.fill" : "bus.fill").foregroundColor(station.isMetro ? .blue : .green).font(.caption); Text(station.displayName).font(.subheadline) } } } }
                 }
-                
-                // Search History
                 if !favoritesManager.searchHistory.isEmpty {
-                    Section(header: Text("Recent")) {
-                        ForEach(favoritesManager.searchHistory) { result in
-                            Button(action: {
-                                selectedDestination = result
-                                dismiss()
-                            }) {
-                                HStack {
-                                    Image(systemName: "clock")
-                                        .foregroundColor(.secondary)
-                                        .font(.caption)
-                                    Text(result.name)
-                                        .font(.subheadline)
-                                }
-                            }
-                        }
-                    }
+                    Section(header: Text("Recent")) { ForEach(favoritesManager.searchHistory) { result in Button(action: { select(result) }) { HStack { Image(systemName: "clock").foregroundColor(.secondary).font(.caption); Text(result.name).font(.subheadline) } } } }
                 }
-                
-                // Empty state
-                if favoritesManager.favoriteLocations.isEmpty &&
-                   favoritesManager.favoriteStations.isEmpty &&
-                   favoritesManager.searchHistory.isEmpty {
-                    Text("No favorites or history")
-                        .foregroundColor(.secondary)
-                        .font(.subheadline)
+                if favoritesManager.favoriteLocations.isEmpty && favoritesManager.favoriteStations.isEmpty && favoritesManager.searchHistory.isEmpty {
+                    Text("No favorites or history").foregroundColor(.secondary).font(.subheadline)
                 }
             }
             .navigationTitle("Select Destination")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
+    private func select(_ result: SearchResult) { selectedDestination = result; dismiss() }
 }
 
-// MARK: - Route Instructions View
+// MARK: - Route Instructions View (with Advanced Crown Scrolling)
 struct RouteInstructionsView: View {
     @Binding var route: Route?
     @State private var currentPage = 0
+    @State private var previousPage = 0
+    
+    @State private var crownAccumulator: Double = 0.0
+    @State private var scrollProxy: ScrollViewProxy?
+    @State private var isAtTop: Bool = true
+    @State private var isAtBottom: Bool = false
     
     private var totalPages: Int {
         guard let route = route else { return 0 }
-        return route.segments.count + 1 // +1 for summary page
+        return route.segments.count + 1
     }
     
     var body: some View {
-        VStack {
-            if let route = route {
-                TabView(selection: $currentPage) {
-                    // Instruction pages
-                    ForEach(Array(route.segments.enumerated()), id: \.offset) { index, segment in
-                        InstructionCard(
-                            segment: segment,
-                            stepNumber: index + 1,
-                            totalSteps: route.segments.count
-                        )
-                        .tag(index)
+        if let route = route {
+            TabView(selection: $currentPage) {
+                instructionPages(for: route)
+            }
+            .tabViewStyle(.page(indexDisplayMode: .never))
+            .focusable()
+            .digitalCrownRotation($crownAccumulator, from: -1, through: 1, sensitivity: .low, isContinuous: false, isHapticFeedbackEnabled: true)
+            .onChange(of: crownAccumulator) {
+                // FIX: Increase threshold to make scrolling less sensitive
+                let scrollThreshold: Double = 0.8 
+
+                if crownAccumulator > scrollThreshold { // Scrolled down
+                    if !isAtBottom {
+                        scrollProxy?.scrollTo("bottom", anchor: .bottom)
+                    } else if currentPage < totalPages - 1 {
+                        currentPage += 1
                     }
-                    
-                    // Summary page
-                    SummaryCard(
-                        route: route,
-                        onDismiss: { self.route = nil }
-                    )
-                    .tag(route.segments.count)
+                    crownAccumulator = 0
+                } else if crownAccumulator < -scrollThreshold { // Scrolled up
+                    if !isAtTop {
+                        scrollProxy?.scrollTo("top", anchor: .top)
+                    } else if currentPage > 0 {
+                        currentPage -= 1
+                    }
+                    crownAccumulator = 0
                 }
-                .tabViewStyle(.page)
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
+            }
+            .onChange(of: currentPage) { newValue in
+                // FIX: Add logic to prevent TabView from looping
+                if previousPage == totalPages - 1 && newValue == 0 {
+                    // User swiped forward from the last page, prevent it
+                    DispatchQueue.main.async { currentPage = previousPage }
+                    return
+                }
+                if previousPage == 0 && newValue == totalPages - 1 {
+                    // User swiped backward from the first page, prevent it
+                    DispatchQueue.main.async { currentPage = previousPage }
+                    return
+                }
+                
+                // If it's a valid change, update state
+                previousPage = newValue
+                isAtTop = true
+                isAtBottom = false
+                crownAccumulator = 0
             }
         }
-        .navigationTitle("Route")
-        .navigationBarTitleDisplayMode(.inline)
+    }
+    
+    @ViewBuilder
+    private func instructionPages(for route: Route) -> some View {
+        ForEach(Array(route.segments.enumerated()), id: \.offset) { index, segment in
+            ScrollViewReader { proxy in
+                InstructionCard(
+                    segment: segment,
+                    nextSegment: (index + 1 < route.segments.count) ? route.segments[index + 1] : nil,
+                    isLastSegment: index == route.segments.count - 1,
+                    stepNumber: index + 1,
+                    totalSteps: route.segments.count,
+                    isAtTop: $isAtTop,
+                    isAtBottom: $isAtBottom
+                )
+                .tag(index)
+                .onAppear { self.scrollProxy = proxy }
+            }
+        }
+        SummaryCard(route: route, onDismiss: { self.route = nil }).tag(route.segments.count)
     }
 }
 
-// MARK: - Instruction Card
+// MARK: - Instruction Card (Redesigned for Scrolling)
 struct InstructionCard: View {
     let segment: RouteSegment
+    let nextSegment: RouteSegment?
+    let isLastSegment: Bool
     let stepNumber: Int
     let totalSteps: Int
     
+    @Binding var isAtTop: Bool
+    @Binding var isAtBottom: Bool
+    
     var body: some View {
         ScrollView {
-            VStack(spacing: 12) {
-                // Step indicator
-                Text("Step \(stepNumber) of \(totalSteps)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                // Icon
-                Image(systemName: iconForSegment)
-                    .font(.system(size: 40))
-                    .foregroundColor(colorForSegment)
-                    .padding()
-                
-                // Instruction text
-                Text(instructionText)
-                    .font(.headline)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                // Duration and details
-                VStack(spacing: 4) {
-                    if let duration = segment.duration {
-                        let minutes = Int(ceil(duration / 60))
-                        Text("\(minutes) min")
-                            .font(.title3)
-                            .fontWeight(.bold)
+            VStack(spacing: 8) {
+                Color.clear.frame(height: 0).id("top")
+                Text("Step \(stepNumber) of \(totalSteps)").font(.caption2).foregroundColor(.secondary).padding(.bottom, 2)
+                HStack(alignment: .center, spacing: 10) {
+                    Image(systemName: iconForSegment).font(.system(size: 28)).foregroundColor(colorForSegment).frame(width: 35)
+                    VStack(alignment: .leading, spacing: 2) {
+                        let minutes = Int(ceil(segment.durationInSeconds / 60))
+                        Text("\(minutes) min").font(.headline).fontWeight(.bold)
+                        if segment.isBus || segment.isMetro, let stations = segment.stations, !stations.isEmpty { Text("\(stations.count) stop(s)").font(.caption).foregroundColor(.secondary) }
                     }
-                    
-                    if segment.isBus || segment.isMetro, let stations = segment.stations, !stations.isEmpty {
-                        Text("\(stations.count) stop(s)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
+                    Spacer()
                 }
-                .padding()
-                .background(Color(UIColor.systemGray6))
-                .cornerRadius(8)
+                Text(instructionText).font(.body).multilineTextAlignment(.leading).frame(maxWidth: .infinity, alignment: .leading)
+                Color.clear.frame(height: 0).id("bottom")
             }
-            .padding()
+            .padding(.top, 0)
+            .background(GeometryReader { geo in
+                let frame = geo.frame(in: .named("scrollView"))
+                Color.clear
+                    .onAppear { updateScrollPosition(frame: frame, height: geo.size.height) }
+                    .onChange(of: frame) { updateScrollPosition(frame: frame, height: geo.size.height) }
+            })
         }
+        .coordinateSpace(name: "scrollView")
     }
     
-    private var iconForSegment: String {
-        if segment.isWalking { return "figure.walk" }
-        if segment.isMetro { return "tram.fill" }
-        if segment.isBus { return "bus.fill" }
-        return "arrow.right"
+    private func updateScrollPosition(frame: CGRect, height: CGFloat) {
+        isAtTop = frame.minY >= -1
+        isAtBottom = frame.maxY <= height + 2
     }
     
-    private var colorForSegment: Color {
-        if segment.isWalking { return .gray }
-        if segment.isMetro { return .blue }
-        if segment.isBus { return .green }
-        return .primary
-    }
+    private var iconForSegment: String { if segment.isWalking { return "figure.walk" } else if segment.isMetro { return "tram.fill" } else if segment.isBus { return "bus.fill" } else { return "arrow.right" } }
+    private var colorForSegment: Color { LineColorHelper.getColorForSegment(type: segment.type, line: segment.line) }
     
     private var instructionText: String {
         if segment.isWalking {
-            if let firstStation = segment.stations?.first {
-                return "Walk to \(firstStation)"
-            }
-            return "Walk"
+            if isLastSegment { return localizedString("route_walk_to_destination") } else if let nextStation = nextSegment?.stations?.first { return String(format: localizedString("route_walk_to_station"), nextStation) } else { return localizedString("walk") }
         }
-        
         if segment.isBus || segment.isMetro {
-            let lineId = segment.line ?? ""
-            let lastStation = segment.stations?.last ?? ""
-            
-            if segment.isBus {
-                return "Take Bus \(lineId) to \(lastStation)"
+            let lineIdentifier = segment.line ?? ""; let lastStation = segment.stations?.last ?? ""
+            let localizedLineName = segment.isMetro ? LineColorHelper.getMetroLineName(lineIdentifier) : lineIdentifier
+            if let refinedTerminus = segment.refinedTerminus, !refinedTerminus.isEmpty {
+                let lineName = segment.isBus ? "Bus \(lineIdentifier)" : localizedLineName
+                return String(format: localizedString("route_towards"), lineName, refinedTerminus, lastStation)
             } else {
-                return "Take Metro Line \(lineId) to \(lastStation)"
+                let takeInstructionFormat = localizedString(segment.isBus ? "route_take_bus" : "route_take_metro"); let disembarkInstructionFormat = localizedString("route_disembark_at")
+                let takeInstruction = String(format: takeInstructionFormat, localizedLineName); let disembarkInstruction = String(format: disembarkInstructionFormat, lastStation)
+                return "\(takeInstruction) \(disembarkInstruction)"
             }
         }
-        
-        return "Continue"
+        return localizedString("route_travel_segment")
     }
 }
 
-// MARK: - Summary Card
+// MARK: - Summary Card (Redesigned)
 struct SummaryCard: View {
     let route: Route
     let onDismiss: () -> Void
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(.green)
-                
-                Text("Route Summary")
-                    .font(.headline)
-                
-                VStack(spacing: 8) {
-                    Text("Total Time")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("\(route.totalMinutes) min")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                }
-                .padding()
-                .frame(maxWidth: .infinity)
-                .background(Color(UIColor.systemGray6))
-                .cornerRadius(8)
-                
-                VStack(spacing: 4) {
-                    Text("\(route.segments.count) steps")
-                        .font(.subheadline)
-                    
-                    let walkingSteps = route.segments.filter { $0.isWalking }.count
-                    let transitSteps = route.segments.count - walkingSteps
-                    
-                    if transitSteps > 0 {
-                        Text("\(transitSteps) transit, \(walkingSteps) walking")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                
-                Button(action: onDismiss) {
-                    Text("Return to Menu")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
-                }
-                .padding(.top)
+        VStack(spacing: 12) {
+            HStack {
+                Image(systemName: "checkmark.circle.fill").font(.title3).foregroundColor(.green)
+                Text("Route Summary").font(.headline)
             }
-            .padding()
+            .padding(.bottom, 8)
+            VStack(alignment: .leading, spacing: 10) {
+                (Text("Total Time: ") + Text("\(route.totalMinutes) mins").foregroundColor(.secondary))
+                let walkingSteps = route.segments.filter { $0.isWalking }.count
+                let transitSteps = route.segments.count - walkingSteps
+                (Text("\(transitSteps) transit, ") + Text("\(walkingSteps) walking").foregroundColor(.secondary))
+            }
+            .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+            Spacer()
+            Button("Done", action: onDismiss).buttonStyle(.bordered).tint(.blue)
         }
+        .padding()
     }
 }
 
