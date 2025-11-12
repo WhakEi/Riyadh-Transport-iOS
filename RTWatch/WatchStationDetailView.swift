@@ -9,7 +9,8 @@ import SwiftUI
 
 // Extend LiveArrival to be Identifiable for watchOS views
 extension LiveArrival: Identifiable {
-    var id: String { "\(line)-\(destination)-\(minutesUntil)" }
+    // Use a UUID for a guaranteed unique ID in SwiftUI lists
+    var id: String { UUID().uuidString }
 }
 
 struct WatchStationDetailView: View {
@@ -21,22 +22,26 @@ struct WatchStationDetailView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Station header
-                VStack(spacing: 8) {
+                // FIX: Redesigned header to be more compact
+                HStack(spacing: 12) {
                     Image(systemName: station.isMetro ? "tram.fill" : "bus.fill")
-                        .font(.largeTitle)
+                        .font(.title)
                         .foregroundColor(station.isMetro ? .blue : .green)
+                        .frame(width: 40)
                     
-                    Text(station.displayName)
-                        .font(.headline)
-                        .multilineTextAlignment(.center)
-                    
-                    if let distance = station.distance {
-                        let distanceInMeters = Int(distance)
-                        Text("\(distanceInMeters)m away")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    VStack(alignment: .leading) {
+                        Text(station.displayName)
+                            .font(.headline)
+                        
+                        if let distance = station.distance {
+                            let distanceInMeters = Int(distance)
+                            Text("\(distanceInMeters)m away")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
+                    
+                    Spacer()
                 }
                 .padding()
                 
@@ -79,7 +84,7 @@ struct WatchStationDetailView: View {
                         }
                     }
                 }
-                .padding()
+                .padding(.horizontal)
             }
         }
         .navigationTitle("Station Details")
@@ -148,73 +153,36 @@ struct ArrivalRow: View {
     let groupedArrival: GroupedArrival
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                // Line indicator
-                Circle()
-                    .fill(lineColor)
-                    .frame(width: 6, height: 6)
-                
-                Text(groupedArrival.line)
+        HStack(alignment: .center) {
+            // Left Side: Line color bar, name, and destination
+            Rectangle()
+                .fill(LineColorHelper.getMetroLineColor(groupedArrival.line))
+                .frame(width: 4, height: 36)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(LineColorHelper.getMetroLineName(groupedArrival.line))
                     .font(.subheadline)
                     .fontWeight(.semibold)
                 
-                Spacer()
-                
-                // Soonest arrival time
-                Text("\(groupedArrival.soonestArrival.minutesUntil) min")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundColor(timeColor)
+                Text(groupedArrival.destination)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
             }
             
-            // Destination
-            Text(groupedArrival.destination)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-                .lineLimit(1)
+            Spacer()
             
-            // Upcoming arrivals
-            if !groupedArrival.upcomingArrivals.isEmpty {
-                HStack(spacing: 4) {
-                    Text("Next:")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    ForEach(groupedArrival.upcomingArrivals, id: \.id) { arrival in
-                        Text("\(arrival.minutesUntil)")
-                            .font(.caption2)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    Text("min")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
+            // Right Side: The unified LiveArrivalIndicator
+            let soonestMinutes = groupedArrival.soonestArrival.minutesUntil
+            let upcomingMinutes = groupedArrival.upcomingArrivals.map { $0.minutesUntil }
+            
+            LiveArrivalIndicator(
+                minutes: soonestMinutes,
+                status: soonestMinutes < 59 ? "live" : "normal",
+                upcomingArrivals: upcomingMinutes
+            )
         }
-        .padding(.vertical, 8)
-        .padding(.horizontal, 12)
-        .background(Color(UIColor.systemGray6))
-        .cornerRadius(8)
-    }
-    
-    private var lineColor: Color {
-        // Simple color coding - can be enhanced with actual metro line colors
-        if groupedArrival.line.contains("1") { return .blue }
-        if groupedArrival.line.contains("2") { return .red }
-        if groupedArrival.line.contains("3") { return .orange }
-        if groupedArrival.line.contains("4") { return .yellow }
-        if groupedArrival.line.contains("5") { return .green }
-        if groupedArrival.line.contains("6") { return .purple }
-        return .gray
-    }
-    
-    private var timeColor: Color {
-        let minutes = groupedArrival.soonestArrival.minutesUntil
-        if minutes <= 2 { return .red }
-        if minutes <= 5 { return .orange }
-        return .primary
+        .padding(.vertical, 4)
     }
 }
 
@@ -225,7 +193,9 @@ struct ArrivalRow: View {
                 rawName: "Test Station (Metro)",
                 type: "metro",
                 lat: 24.7136,
-                lng: 46.6753
+                lng: 46.6753,
+                distance: 150,
+                duration: nil
             )
         )
     }
