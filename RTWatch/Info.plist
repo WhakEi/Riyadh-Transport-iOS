@@ -18,14 +18,10 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>This app needs your location to find nearby stations and plan routes from your current location.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>This app needs your location to find nearby stations and plan routes from your current location.</string>
-	<key>WKWatchOnly</key>
-	<true/>
-	<key>WKCompanionAppBundleIdentifier</key>
-	<string>com.riyadhtransport.app</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>This app needs your location to find nearby stations and plan routes from your current location.</string>
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>location-services</string>
@@ -35,5 +31,9 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<key>WKCompanionAppBundleIdentifier</key>
+	<string>com.RTG.Riyadh-Transport</string>
+	<key>WKApplication</key>
+	<true/>
 </dict>
 </plist>
