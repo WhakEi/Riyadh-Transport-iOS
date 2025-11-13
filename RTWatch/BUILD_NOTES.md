@@ -8,6 +8,7 @@
 - `WatchRouteView.swift` - Route planning feature
 - `WatchNearbyStationsView.swift` - Compass-based nearby stations
 - `WatchStationDetailView.swift` - Station details with live arrivals
+- `WatchConnectivityManager.swift` - Controls syncing of favorites as well as search history from iPhone
 - `Info.plist` - watchOS app configuration
 - `Assets.xcassets/` - watchOS app icons and assets
 - `README.md` - Setup and usage documentation
@@ -34,6 +35,7 @@ These files need to be added to both iOS and watchOS targets in Xcode:
 - `FavoritesManager.swift` - Favorites and history management
 - `LocalizationHelper.swift` - Localization support
 - `LineColorHelper.swift` - Transit line color utilities
+- `LiveArrivalIndicator.swift` - Display arrival times
 
 **Views/Managers** (`Riyadh Transport/Views/`)
 - `StationManager.swift` - Station data management
@@ -42,14 +44,13 @@ These files need to be added to both iOS and watchOS targets in Xcode:
 
 ### watchOS Target Settings
 - **Product Name**: Riyadh Transport Watch App
-- **Bundle Identifier**: com.riyadhtransport.app.watchkitapp
-- **Deployment Target**: watchOS 8.0 or later
+- **Deployment Target**: watchOS 8.6 or later
 - **Supported Destinations**: Apple Watch
 - **Language**: Swift
 - **UI Framework**: SwiftUI
 
 ### Required Capabilities
-- Location Services (When In Use)
+- Location Services
 - Internet access
 
 ### Info.plist Configuration
@@ -168,8 +169,6 @@ If stations/arrivals don't appear:
 
 ### Battery Optimization
 - Location updates stop when views disappear
-- Compass view limits to 8 nearby stations
-- Live arrivals refresh only on demand
 
 ### Memory Management
 - Use weak references in closures
@@ -180,23 +179,6 @@ If stations/arrivals don't appear:
 - Combine API calls where possible
 - Cache station list after first load
 - Use appropriate timeout values
-
-## Future Enhancements
-
-### Planned Features
-- [ ] Watch complications showing next arrival
-- [ ] Haptic feedback for navigation
-- [ ] Siri shortcuts integration
-- [ ] Background location updates for nearby alerts
-- [ ] Apple Watch workout integration
-- [ ] Offline mode with cached data
-
-### Code Improvements
-- [ ] Add unit tests for view models
-- [ ] Add UI tests for navigation flows
-- [ ] Improve error handling and user feedback
-- [ ] Add analytics/crash reporting
-- [ ] Optimize image assets for different watch sizes
 
 ## Resources
 
