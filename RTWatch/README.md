@@ -123,7 +123,7 @@ The watchOS app shares models, services, and utilities with the iOS app:
 ## Technical Details
 
 ### Requirements
-- watchOS 8.0 or later
+- watchOS 8.5 or later
 - Swift 5.7 or later
 - Location services permission
 - Active internet connection for API calls
@@ -161,16 +161,6 @@ The app will inherit localization settings from the iOS app through shared servi
 ## Known Limitations
 
 - No offline mode (requires active internet connection)
-- Limited to 8 stations in compass view for clarity
-- No map visualization (text/compass only)
+- No map visualization (compass only)
 - Destination selection limited to favorites and history (no keyboard search)
-- Live arrival data depends on backend availability
-
-## Future Enhancements
-
-- [ ] Add complications for quick access
-- [ ] Add watch face complications showing nearby arrivals
-- [ ] Add haptic feedback for navigation cues
-- [ ] Add Siri shortcuts integration
-- [ ] Optimize battery usage for background location updates
-- [ ] Add Apple Watch workout integration for walking routes
+- The app depends entirely on GPS and cannot function without it
