@@ -21,7 +21,7 @@ This iOS version is a port of the Android app, designed to provide a native iOS 
 
 - ✅ **Route Planning**: Find routes between locations using public transport
 - ✅ **Station Search**: Browse and search all metro and bus stations
-- ⚫️ **Live Arrivals**: View real-time arrival information for metro and buses
+- ✅ **Live Arrivals**: View real-time arrival information for metro and buses
 - ✅ **Interactive Map**: View stations and routes with Apple Maps
 - ✅ **GPS Location**: Use your current location as starting point
 - ✅ **Multilingual**: Supports English and Arabic (العربية)
@@ -32,7 +32,8 @@ This iOS version is a port of the Android app, designed to provide a native iOS 
 
 ## Requirements
 
-- iOS 15.0 or later (*Note:* iOS 15 does not support latest visual capabilites, UI may vary from screenshots)
+- iOS 15.5 or later (*Note:* iOS 15 does not support latest visual capabilites, UI may vary from screenshots)
+- watchOS 8.5 or later (If you're installing on Apple Watch as well)
 - Xcode 14.0 or later
 - Swift 5.7 or later
 - Active internet connection for API calls and map tiles
@@ -176,7 +177,7 @@ The app uses color-coded metro lines:
 - [ ] Offline mode with cached data
 - [ ] Push notifications for service alerts
 - [ ] Widget support for favorite stations
-- [ ] Apple Watch companion app
+- [x] Apple Watch companion app
 - [ ] Siri shortcuts integration
 
 ## Architecture
