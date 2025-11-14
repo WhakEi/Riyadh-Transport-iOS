@@ -74,5 +74,6 @@ struct PanelView: View {
             .tabViewStyle(.page(indexDisplayMode: .never))
         }
         .padding(.top, 8) // This adds the necessary space for the grabber
+        .ignoresSafeArea(edges: .bottom)
     }
 }
