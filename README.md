@@ -1,6 +1,9 @@
-# Riyadh Transport - iOS App
+<h1>
+  <img src="Riyadh Transport/Assets.xcassets/AppIcon.appiconset/IMG_4070.png" width="48" style="vertical-align: middle; margin-right: 15px;">
+  Riyadh Transport iOS App
+</h1>
 
-A native iOS application for Riyadh public transport, built with Swift and SwiftUI. This app provides route planning, station information, and live arrival times for metro and bus services in Riyadh.
+A native iOS application along with a watchOS companion app for Riyadh public transport, built with Swift and SwiftUI. This app provides route planning, station information, and live arrival times for metro and bus services in Riyadh.
 
 <div style="display: flex;">
     <img src="pics/routemap.PNG" alt="Route Map" style="width: 150px; margin-right: 10px;">
