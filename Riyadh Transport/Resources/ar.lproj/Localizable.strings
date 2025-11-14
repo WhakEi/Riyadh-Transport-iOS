@@ -116,3 +116,28 @@
 "lines_in_station" = "مسارات في هذه المحطة";
 "no_lines_found" = "فشل العثور على مسار يمر من هذه المحطة";
 "station" = "محطة";
+
+/* watchOS App */
+"watch_search_route_button" = "البحث عن مسار";
+"watch_stations_near_me_button" = "محطات قريبة مني";
+"watch_finding_route" = "جاري البحث...";
+"watch_select_destination" = "أختر وجهتك";
+"watch_no_location" = "تعذر تحديد موقعك. يرجى التحقق من الإعدادات.";
+"watch_no_location_short" = "تعذر تحديد موقعك";
+"watch_route_not_found" = "فشل البحث على مسار";
+"watch_favorite_stations" = "محطاتي المفضلة";
+"watch_no_favorites_or_history" = "لا يوجد مفضلات أو سجل";
+"watch_select_destination_title" = "إختر وجهتك";
+"watch_step_counter" = "خطوة %d من %d";
+"watch_route_summary" = "ملخص المسار";
+"watch_total_time" = "الوقت الإجمالي: ";
+"watch_steps_breakdown" = "%d انتقال، %d مشي";
+"watch_finding_stations" = "جاري البحث على محطات...";
+"watch_failed_to_load_stations" = "فشل تحميل المحطات";
+"watch_no_stations_nearby" = "لم يتم العثور على محطات قريبة";
+"watch_refresh" = "إعادة التحميل";
+"watch_cluster_more" = "+%d أخرى";
+"watch_distance_away_meters" = "%d متر";
+"watch_failed_to_load_arrivals" = "فشل تحميل قائمة الوصول";
+"watch_no_arrivals_available" = "لا توجد رحلات وصول متاحة";
+"watch_station_details_title" = "تفاصيل المحطة";
