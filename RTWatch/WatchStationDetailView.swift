@@ -131,7 +131,7 @@ struct WatchStationDetailView: View {
                 }
             } catch {
                 await MainActor.run {
-                    self.errorMessage = "Failed to load arrivals"
+                    self.errorMessage = localizedString("watch_failed_to_load_arrivals")
                     self.isLoading = false
                 }
             }
