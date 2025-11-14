@@ -83,7 +83,10 @@ struct RefineTerminusResponse: Codable {
 class LiveArrivalService {
     static let shared = LiveArrivalService()
     private let baseURL = "https://mainserver.inirl.net:5002/"
-    private let fallbackURL = "https://www.rpt.sa/en/web/guest/stationdetails"
+    private var fallbackURL: String {
+        let selectedLanguage = UserDefaults.standard.string(forKey: "selectedLanguage") ?? "en"
+        return "https://www.rpt.sa/\(selectedLanguage)/web/guest/stationdetails"
+    }
     
     private init() {}
     
