@@ -43,7 +43,7 @@ struct SettingsView: View {
                     HStack {
                         Text("version")
                         Spacer()
-                        Text("0.7.0")
+                        Text("0.9.0")
                             .foregroundColor(.secondary)
                     }
                     Link(destination: URL(string: "https://github.com/WhakEi/Riyadh-Transport-iOS")!) {
