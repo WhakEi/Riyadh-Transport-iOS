@@ -8,12 +8,13 @@
 import Foundation
 
 // New struct to decode the individual coordinate objects from the API.
-struct RouteCoordinate: Codable {
+// FIX: Add Hashable conformance
+struct RouteCoordinate: Codable, Equatable, Hashable {
     let lat: Double
     let lng: Double
 }
 
-struct RouteSegment: Codable, Identifiable {
+struct RouteSegment: Codable, Identifiable, Equatable {
     var id: String { UUID().uuidString }
     
     let type: String?
@@ -24,7 +25,6 @@ struct RouteSegment: Codable, Identifiable {
     let from: AnyCodable?
     let to: AnyCodable?
     
-    // Add the new property to capture the detailed path.
     let coordinates: [RouteCoordinate]?
     
     // Live arrival data (not serialized, runtime only)
@@ -33,6 +33,27 @@ struct RouteSegment: Codable, Identifiable {
     var refinedTerminus: String?
     var nextArrivalMinutes: Int?
     var upcomingArrivals: [Int]?
+    
+    static func == (lhs: RouteSegment, rhs: RouteSegment) -> Bool {
+        // Compare all properties that matter for equality, but ignore 'from' and 'to' (AnyCodable)
+        // and runtime-only properties.
+        return lhs.type == rhs.type &&
+               lhs.line == rhs.line &&
+               lhs.stations == rhs.stations &&
+               lhs.duration == rhs.duration &&
+               lhs.distance == rhs.distance &&
+               lhs.coordinates == rhs.coordinates
+    }
+    
+    // Since we provide a custom ==, we must also provide a custom hash function.
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(type)
+        hasher.combine(line)
+        hasher.combine(stations)
+        hasher.combine(duration)
+        hasher.combine(distance)
+        hasher.combine(coordinates)
+    }
     
     var isWalking: Bool {
         return type?.lowercased() == "walk"
@@ -60,6 +81,7 @@ struct RouteSegment: Codable, Identifiable {
 }
 
 // Helper to decode unknown JSON types
+// This struct cannot conform to Equatable because its 'value' is of type 'Any'.
 struct AnyCodable: Codable {
     let value: Any
     
