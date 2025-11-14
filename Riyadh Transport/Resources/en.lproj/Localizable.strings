@@ -115,3 +115,28 @@
 "no_arrivals" = "No arrivals at this time";
 "lines_in_station" = "Lines in this station";
 "no_lines_found" = "No lines found for this station.";
+
+/* watchOS App */
+"watch_search_route_button" = "Search Route";
+"watch_stations_near_me_button" = "Stations Near Me";
+"watch_finding_route" = "Finding Route...";
+"watch_select_destination" = "Select a destination";
+"watch_no_location" = "Unable to get your location. Please check settings.";
+"watch_no_location_short" = "Unable to get your location";
+"watch_route_not_found" = "Route not found";
+"watch_favorite_stations" = "Favorite Stations";
+"watch_no_favorites_or_history" = "No favorites or history";
+"watch_select_destination_title" = "Select Destination";
+"watch_step_counter" = "Step %d of %d";
+"watch_route_summary" = "Route Summary";
+"watch_total_time" = "Total Time: ";
+"watch_steps_breakdown" = "%d transit, %d walking";
+"watch_finding_stations" = "Finding stations...";
+"watch_failed_to_load_stations" = "Failed to load stations";
+"watch_no_stations_nearby" = "No stations found nearby";
+"watch_refresh" = "Refresh";
+"watch_cluster_more" = "+%d more";
+"watch_distance_away_meters" = "%dm away";
+"watch_failed_to_load_arrivals" = "Failed to load arrivals";
+"watch_no_arrivals_available" = "No arrivals available";
+"watch_station_details_title" = "Station Details";
