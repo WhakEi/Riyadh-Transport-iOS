@@ -44,7 +44,7 @@ struct LineDetailView: View {
                         }
                     }
                 }
-                
+           
                 Section(header: Text(localizedString("stations")).font(.headline)) {
                     if displayedStations.isEmpty {
                         HStack { Spacer(); ProgressView(); Spacer() }
