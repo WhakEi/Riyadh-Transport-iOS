@@ -89,8 +89,16 @@ struct ContentView_iOS16: View {
     @Binding var showNearbyStationsCoordinate: CLLocationCoordinate2D?
 
     enum ModalScreen: Identifiable {
-        case panel, settings, favorites, mapTapOptions
-        var id: Self { self }
+        case panel, settings, favorites, mapTapOptions(CLLocationCoordinate2D)
+        
+        var id: String {
+            switch self {
+            case .panel: return "panel"
+            case .settings: return "settings"
+            case .favorites: return "favorites"
+            case .mapTapOptions: return "mapTapOptions"
+            }
+        }
     }
 
     @State private var activeModal: ModalScreen? = .panel
@@ -101,7 +109,7 @@ struct ContentView_iOS16: View {
             MapView(region: $region, onMapTap: { coordinate in
                 DispatchQueue.main.async {
                     tappedCoordinate = coordinate
-                    activeModal = .mapTapOptions
+                    activeModal = .mapTapOptions(coordinate)
                 }
             }, route: currentRoute, allStations: stationManager.stations, stationManager: stationManager)
                 .ignoresSafeArea()
@@ -163,21 +171,19 @@ struct ContentView_iOS16: View {
             case .favorites:
                 FavoritesView()
                     .environment(\.layoutDirection, layoutDirection)
-            case .mapTapOptions:
-                if let coordinate = tappedCoordinate {
-                    MapTapOptionsView(
-                        coordinate: coordinate,
-                        onAction: { action, coord in
-                            handleMapAction(action: action, coordinate: coord)
-                            activeModal = nil
-                        },
-                        onDismiss: {
-                            activeModal = nil
-                        }
-                    )
-                    .presentationDetents([.height(280)])
-                    .environment(\.layoutDirection, layoutDirection)
-                }
+            case .mapTapOptions(let coordinate):
+                MapTapOptionsView(
+                    coordinate: coordinate,
+                    onAction: { action, coord in
+                        handleMapAction(action: action, coordinate: coord)
+                        activeModal = nil
+                    },
+                    onDismiss: {
+                        activeModal = nil
+                    }
+                )
+                .presentationDetents([.height(280)])
+                .environment(\.layoutDirection, layoutDirection)
             }
         }
         .onAppear { locationManager.requestPermission() }
