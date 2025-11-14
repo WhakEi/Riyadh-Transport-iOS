@@ -183,6 +183,8 @@ struct ContentView_iOS16: View {
         .onAppear { locationManager.requestPermission() }
         .onChange(of: selectedLanguage) { _ in
             currentRoute = nil
+            // Clear alert cache when language changes
+            LineAlertService.shared.clearCache()
         }
     }
 
@@ -341,6 +343,8 @@ struct ContentView_iOS15_Fallback: View {
         }
         .onChange(of: selectedLanguage) { _ in
             currentRoute = nil
+            // Clear alert cache when language changes
+            LineAlertService.shared.clearCache()
         }
     }
 
