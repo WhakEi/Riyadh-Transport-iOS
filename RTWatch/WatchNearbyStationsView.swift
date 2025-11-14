@@ -39,7 +39,7 @@ struct WatchNearbyStationsView: View {
     var body: some View {
         Group {
             if isLoading {
-                ProgressView("Finding stations...")
+                ProgressView(localizedString("watch_finding_stations"))
             } else if let error = errorMessage {
                 ErrorView(message: error, onRetry: loadNearbyStations)
             } else if nearbyStations.isEmpty {
@@ -51,7 +51,7 @@ struct WatchNearbyStationsView: View {
                 )
             }
         }
-        .navigationTitle("Nearby Stations")
+        .navigationTitle(localizedString("nearby_stations"))
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             locationManager.startUpdatingLocation()
@@ -66,12 +66,12 @@ struct WatchNearbyStationsView: View {
     
     private func loadNearbyStations() {
         guard let location = locationManager.location else {
-            errorMessage = "Unable to get your location"
+            errorMessage = localizedString("watch_no_location_short")
             DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                 if locationManager.location != nil {
                     loadNearbyStations()
                 } else {
-                    errorMessage = "Unable to get your location. Please check settings."
+                    errorMessage = localizedString("watch_no_location")
                 }
             }
             return
@@ -97,7 +97,7 @@ struct WatchNearbyStationsView: View {
                 }
             } catch {
                 await MainActor.run {
-                    self.errorMessage = "Failed to load stations"
+                    self.errorMessage = localizedString("watch_failed_to_load_stations")
                     self.isLoading = false
                 }
             }
@@ -114,7 +114,7 @@ private struct ErrorView: View {
         VStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle").font(.largeTitle).foregroundColor(.orange)
             Text(message).font(.caption).multilineTextAlignment(.center).foregroundColor(.secondary)
-            Button("Retry", action: onRetry).padding(.top)
+            Button(localizedString("retry"), action: onRetry).padding(.top)
         }.padding()
     }
 }
@@ -125,8 +125,8 @@ private struct EmptyStateView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: "location.slash").font(.largeTitle).foregroundColor(.secondary)
-            Text("No stations found nearby").font(.caption).foregroundColor(.secondary)
-            Button("Refresh", action: onRefresh).padding(.top)
+            Text(localizedString("watch_no_stations_nearby")).font(.caption).foregroundColor(.secondary)
+            Button(localizedString("watch_refresh"), action: onRefresh).padding(.top)
         }.padding()
     }
 }
@@ -222,7 +222,7 @@ struct CompassView: View {
                 }
                 
                 if zoomedCluster != nil {
-                    VStack { Spacer(); Button(action: { zoomedCluster = nil; zoomFocusPoint = .zero }) { Image(systemName: "arrow.down.right.and.arrow.up.left") }.padding(4).background(.thinMaterial, in: Circle()) }
+                    VStack { Spacer(); Button(action: { zoomedCluster = nil; zoomFocusPoint = .zero }) { Image(systemName: "arrow.down.right.and.arrow.up.left") }.padding(4).modifier(MaterialBackgroundModifier()) } // FIX: Use the modifier here
                 }
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
@@ -264,8 +264,8 @@ private struct StationMarker: View {
     let station: Station
     let userLocation: CLLocationCoordinate2D?
     let radius: CGFloat
-    let isZoomed: Bool // New property to know if we are in the zoomed state
-    let zoomFactor: CGFloat // New property to know how much to counter-scale by
+    let isZoomed: Bool
+    let zoomFactor: CGFloat
     
     var body: some View {
         if let userLocation = userLocation {
@@ -275,7 +275,6 @@ private struct StationMarker: View {
                     Image(systemName: station.isMetro ? "tram.fill" : "bus.fill").font(.caption2).foregroundColor(station.isMetro ? .blue : .green).padding(4).modifier(MaterialBackgroundModifier())
                     Text(formatStationName(station.displayName)).font(.system(size: 8)).lineLimit(2).multilineTextAlignment(.center).frame(width: 40)
                 }
-                // FIX: Apply an inverse scale effect when zoomed to keep the marker size constant
                 .scaleEffect(isZoomed ? 1.0 / zoomFactor : 1.0)
             }
             .buttonStyle(.plain)
@@ -299,7 +298,7 @@ private struct ClusterMarker: View {
                 VStack(spacing: 2) {
                     Image(systemName: "circle.grid.2x2.fill").font(.caption2).foregroundColor(.orange).padding(4).modifier(MaterialBackgroundModifier())
                     Text(formatStationName(firstStation.displayName)).font(.system(size: 8)).lineLimit(2).multilineTextAlignment(.center).frame(width: 40)
-                    Text("+\(cluster.stations.count - 1) more").font(.system(size: 7)).foregroundColor(.secondary)
+                    Text(String(format: localizedString("watch_cluster_more"), cluster.stations.count - 1)).font(.system(size: 7)).foregroundColor(.secondary)
                 }
             }
             .buttonStyle(.plain)

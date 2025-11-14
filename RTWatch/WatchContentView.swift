@@ -15,16 +15,16 @@ struct WatchContentView: View {
         NavigationView {
             List {
                 NavigationLink(destination: WatchRouteView()) {
-                    Label("Search Route", systemImage: "map.fill")
+                    Label(localizedString("watch_search_route_button"), systemImage: "map.fill")
                         .font(.headline)
                 }
                 
                 NavigationLink(destination: WatchNearbyStationsView()) {
-                    Label("Stations Near Me", systemImage: "location.circle.fill")
+                    Label(localizedString("watch_stations_near_me_button"), systemImage: "location.circle.fill")
                         .font(.headline)
                 }
             }
-            .navigationTitle("Riyadh Transport")
+            .navigationTitle(localizedString("app_name"))
         }
         .onAppear {
             locationManager.requestPermission()

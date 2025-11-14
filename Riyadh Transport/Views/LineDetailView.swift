@@ -14,6 +14,8 @@ struct LineDetailView: View {
     
     @State private var selectedDirection: String = ""
     @State private var showDirectionDialog = false
+    @State private var alerts: [LineAlert] = []
+    @State private var isLoadingAlerts = false
     
     private var busDirections: [String] { line.stationsByDirection?.keys.sorted() ?? [] }
     private var isRingRoute: Bool { line.isBus && busDirections.count == 1 }
@@ -32,6 +34,17 @@ struct LineDetailView: View {
             Divider()
             
             List {
+                // Alerts section
+                if !alerts.isEmpty {
+                    Section {
+                        ForEach(alerts) { alert in
+                            LineAlertView(alert: alert)
+                                .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                                .listRowBackground(Color.clear)
+                        }
+                    }
+                }
+           
                 Section(header: Text(localizedString("stations")).font(.headline)) {
                     if displayedStations.isEmpty {
                         HStack { Spacer(); ProgressView(); Spacer() }
@@ -63,6 +76,7 @@ struct LineDetailView: View {
             if selectedDirection.isEmpty, let firstDirection = busDirections.first {
                 selectedDirection = firstDirection
             }
+            loadAlerts()
         }
         .onChange(of: busDirections) { newDirections in
             // If the available directions change and the selected direction is missing, set it to the first
@@ -141,6 +155,28 @@ struct LineDetailView: View {
             Text(stationName).font(.body)
             Spacer()
         }.padding(.vertical, 4)
+    }
+    
+    private func loadAlerts() {
+        isLoadingAlerts = true
+        
+        Task {
+            do {
+                // Get alerts for this specific line
+                let fetchedAlerts = try await LineAlertService.shared.getAlertsForLine(line.id)
+                
+                await MainActor.run {
+                    self.alerts = fetchedAlerts
+                    self.isLoadingAlerts = false
+                }
+            } catch {
+                await MainActor.run {
+                    print("Error loading alerts for line \(line.id): \(error.localizedDescription)")
+                    self.alerts = []
+                    self.isLoadingAlerts = false
+                }
+            }
+        }
     }
 }
 

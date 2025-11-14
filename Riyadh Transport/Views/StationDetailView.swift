@@ -14,6 +14,8 @@ struct StationDetailView: View {
     @State private var stationLines: StationLinesResponse?
     @State private var isLoadingArrivals = false
     @State private var isLoadingLines = false
+    @State private var alerts: [LineAlert] = []
+    @State private var isLoadingAlerts = false
     
     @EnvironmentObject var favoritesManager: FavoritesManager
     @EnvironmentObject var lineLoader: LineStationLoader
@@ -65,6 +67,17 @@ struct StationDetailView: View {
 
                 stationInfo
             }
+            
+            // Alerts section
+            if !alerts.isEmpty {
+                Section {
+                    ForEach(alerts) { alert in
+                        LineAlertView(alert: alert)
+                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
+                            .listRowBackground(Color.clear)
+                    }
+                }
+            }
 
             Section(header: Text(localizedString("lines_in_station"))) {
                 if isLoadingLines || lineLoader.isLoadingList {
@@ -102,6 +115,10 @@ struct StationDetailView: View {
             loadArrivals()
             loadLines()
             lineLoader.loadLineList()
+            loadAlerts()
+        }
+        .onChange(of: stationLines) { _ in
+            loadAlerts()
         }
     }
     
@@ -221,6 +238,33 @@ struct StationDetailView: View {
                 print("Error loading lines for clean name '\(cleanStationName)': \((error as? LocalizedError)?.errorDescription ?? error.localizedDescription)")
             }
             await MainActor.run { isLoadingLines = false }
+        }
+    }
+    
+    private func loadAlerts() {
+        guard let lines = stationLines else { return }
+        
+        isLoadingAlerts = true
+        
+        Task {
+            do {
+                // Get all line numbers for this station
+                let lineNumbers = lines.metroLines + lines.busLines
+                
+                // Get alerts for these lines
+                let fetchedAlerts = try await LineAlertService.shared.getAlertsForStation(lineNumbers: lineNumbers)
+                
+                await MainActor.run {
+                    self.alerts = fetchedAlerts
+                    self.isLoadingAlerts = false
+                }
+            } catch {
+                await MainActor.run {
+                    print("Error loading alerts: \(error.localizedDescription)")
+                    self.alerts = []
+                    self.isLoadingAlerts = false
+                }
+            }
         }
     }
 }

@@ -27,6 +27,7 @@ This document tracks the implementation status of features ported from the Andro
 - ✅ Metro/Bus arrival differentiation
 - ✅ Station favorites
 - ✅ Map preview in details
+- ✅ Line Disruption Alerts
 
 ### Line Features
 - ✅ Metro lines list
@@ -149,7 +150,7 @@ Potential iOS-specific features:
 - ⚫️ **Widgets**: Home screen widgets for favorites
 - ⚫️ **Shortcuts**: Siri shortcuts integration
 - ⚫️ **Live Activities**: Real-time arrival updates
-- ⚫️ **watchOS App**: Apple Watch companion
+- ✅ **watchOS App**: Apple Watch companion
 - ⚫️ **iPad Optimization**: Split view, larger layouts
 - ⚫️ **Focus Filters**: Smart suggestions
 - ⚫️ **App Clips**: Lightweight version
@@ -158,7 +159,13 @@ Potential iOS-specific features:
 
 - **Minimum**: iOS 15.0
 - **Recommended**: iOS 18.0+
-- **Tested on**: iOS 26.0
+- **Tested on**: iOS 15.5, iOS 26.0, iOS 26.1
+
+## ⌚️ watchOS Version Support
+
+- **Minimum**: watchOS 8.5
+- **Recommended**: watch 10.0+
+- **Tested on**: watchOS 26.1, watchOS 8.5
 
 ## 📊 Code Metrics
 

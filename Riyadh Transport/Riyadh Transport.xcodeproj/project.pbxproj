@@ -33,6 +33,10 @@
 		2951275B2EBE1A1700127C25 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 295127592EBE1A1700127C25 /* Localizable.stringsdict */; };
 		295127612EBE1B1600127C25 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 2951275F2EBE1B1600127C25 /* Localizable.stringsdict */; };
 		295127652EBE1CB800127C25 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 295127642EBE1CB800127C25 /* Localizable.strings */; };
+		29A3227116514D9194ECEEB5 /* LineAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = C66872DBEF444CE19B0B7C5D /* LineAlert.swift */; };
+		89905888E80A4B5B8188556B /* AppWriteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BE60582BF2B94568A4FD6587 /* AppWriteService.swift */; };
+		A1F150528888484CA0E51B50 /* LineAlertService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B6B701EE75A49649E4B67FB /* LineAlertService.swift */; };
+		6615562E936A4E299294995E /* LineAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61660443FAAA4AD2A923A240 /* LineAlertView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -85,6 +89,10 @@
 		2951275A2EBE1A1700127C25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		295127602EBE1B1600127C25 /* ar */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = ar; path = Localizable.stringsdict; sourceTree = "<group>"; };
 		295127632EBE1CB800127C25 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		C66872DBEF444CE19B0B7C5D /* LineAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineAlert.swift; sourceTree = "<group>"; };
+		BE60582BF2B94568A4FD6587 /* AppWriteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWriteService.swift; sourceTree = "<group>"; };
+		5B6B701EE75A49649E4B67FB /* LineAlertService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineAlertService.swift; sourceTree = "<group>"; };
+		61660443FAAA4AD2A923A240 /* LineAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LineAlertView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -147,9 +155,9 @@
 		};
 		293C084E2EBBF1C0003214BF /* Services */ = {
 			isa = PBXGroup;
-			children = (
-				293C084D2EBBF1C0003214BF /* APIService.swift */,
-			);
+			children = (293C084D2EBBF1C0003214BF /* APIService.swift */,
+				BE60582BF2B94568A4FD6587 /* AppWriteService.swift */,
+				5B6B701EE75A49649E4B67FB /* LineAlertService.swift */,);
 			path = Services;
 			sourceTree = "<group>";
 		};
@@ -165,8 +173,7 @@
 		};
 		293C085C2EBBF1C0003214BF /* Views */ = {
 			isa = PBXGroup;
-			children = (
-				293C088A2EBD2CB1003214BF /* SearchLocationView.swift */,
+			children = (293C088A2EBD2CB1003214BF /* SearchLocationView.swift */,
 				293C08532EBBF1C0003214BF /* ContentView.swift */,
 				293C08542EBBF1C0003214BF /* FavoritesView.swift */,
 				293C08552EBBF1C0003214BF /* LineDetailView.swift */,
@@ -177,7 +184,7 @@
 				293C085A2EBBF1C0003214BF /* StationDetailView.swift */,
 				293C085B2EBBF1C0003214BF /* StationsView.swift */,
 				295127502EBE069700127C25 /* StationManager.swift */,
-			);
+				61660443FAAA4AD2A923A240 /* LineAlertView.swift */,);
 			path = Views;
 			sourceTree = "<group>";
 		};
@@ -192,14 +199,13 @@
 		};
 		293C08832EBBF269003214BF /* Models */ = {
 			isa = PBXGroup;
-			children = (
-				293C087D2EBBF269003214BF /* Arrival.swift */,
+			children = (293C087D2EBBF269003214BF /* Arrival.swift */,
 				293C087E2EBBF269003214BF /* Line.swift */,
 				293C087F2EBBF269003214BF /* Route.swift */,
 				293C08802EBBF269003214BF /* RouteSegment.swift */,
 				293C08812EBBF269003214BF /* SearchResult.swift */,
 				293C08822EBBF269003214BF /* Station.swift */,
-			);
+				C66872DBEF444CE19B0B7C5D /* LineAlert.swift */,);
 			path = Models;
 			sourceTree = "<group>";
 		};
@@ -356,8 +362,7 @@
 		293C08082EBBEAAE003214BF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
-			files = (
-				293C085D2EBBF1C0003214BF /* StationsView.swift in Sources */,
+			files = (293C085D2EBBF1C0003214BF /* StationsView.swift in Sources */,
 				293C085E2EBBF1C0003214BF /* LocationManager.swift in Sources */,
 				293C085F2EBBF1C0003214BF /* SettingsView.swift in Sources */,
 				293C08602EBBF1C0003214BF /* APIService.swift in Sources */,
@@ -379,7 +384,10 @@
 				293C08692EBBF1C0003214BF /* FavoritesView.swift in Sources */,
 				293C084C2EBBF185003214BF /* RiyadhTransportApp.swift in Sources */,
 				295127512EBE069700127C25 /* StationManager.swift in Sources */,
-			);
+				29A3227116514D9194ECEEB5 /* LineAlert.swift in Sources */,
+				89905888E80A4B5B8188556B /* AppWriteService.swift in Sources */,
+				A1F150528888484CA0E51B50 /* LineAlertService.swift in Sources */,
+				6615562E936A4E299294995E /* LineAlertView.swift in Sources */,);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		293C08172EBBEAB0003214BF /* Sources */ = {

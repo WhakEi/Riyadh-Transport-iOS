@@ -26,7 +26,8 @@ enum APIServiceError: Error, LocalizedError {
 
 private struct RouteResponse: Codable { let routes: [Route] }
 private struct StationsResponse: Codable { let stations: [String] }
-struct StationLinesResponse: Codable {
+// FIX: Add Equatable conformance to the struct
+struct StationLinesResponse: Codable, Equatable {
     let metroLines: [String]
     let busLines: [String]
     

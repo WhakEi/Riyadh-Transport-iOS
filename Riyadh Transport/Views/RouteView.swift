@@ -34,10 +34,17 @@ struct RouteView: View {
     @State private var liveUpdateTimer: Timer?
     @State private var isUpdatingLiveData = false
     private let journeyUpdateManager = JourneyUpdateManager.shared
+    
+    @State private var alerts: [LineAlert] = []
+    @State private var isLoadingAlerts = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
+                // Display alerts at the top
+                if !alerts.isEmpty {
+                    LineAlertsListView(alerts: alerts)
+                }
                 LocationFieldButton(
                     placeholder: "start_location",
                     text: $startLocation,
@@ -136,9 +143,13 @@ struct RouteView: View {
         .onAppear {
             handleMapAction()
             startLiveUpdates()
+            loadAlerts()
         }
         .onDisappear {
             stopLiveUpdates()
+        }
+        .onChange(of: route) { newRoute in
+            loadAlerts()
         }
     }
     
@@ -269,6 +280,40 @@ struct RouteView: View {
                 await MainActor.run {
                     print("Error updating live data: \(error)")
                     self.isUpdatingLiveData = false
+                }
+            }
+        }
+    }
+    
+    // MARK: - Alert Loading
+    
+    private func loadAlerts() {
+        isLoadingAlerts = true
+        
+        Task {
+            do {
+                let fetchedAlerts: [LineAlert]
+                
+                if let currentRoute = route {
+                    // Extract line numbers from route segments
+                    let lineNumbers = currentRoute.segments.compactMap { $0.line }
+                    
+                    // Get alerts for the route (includes general alerts and specific line alerts)
+                    fetchedAlerts = try await LineAlertService.shared.getAlertsForRoute(lineNumbers: lineNumbers)
+                } else {
+                    // No route yet, show only general alerts
+                    fetchedAlerts = try await LineAlertService.shared.getGeneralAlerts()
+                }
+                
+                await MainActor.run {
+                    self.alerts = fetchedAlerts
+                    self.isLoadingAlerts = false
+                }
+            } catch {
+                await MainActor.run {
+                    print("Error loading alerts: \(error.localizedDescription)")
+                    self.alerts = []
+                    self.isLoadingAlerts = false
                 }
             }
         }
