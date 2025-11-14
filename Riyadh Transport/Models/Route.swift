@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct Route: Codable {
+struct Route: Codable, Equatable {
     let segments: [RouteSegment]
     let totalTime: Double
     
